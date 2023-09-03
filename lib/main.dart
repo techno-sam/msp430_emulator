@@ -1,12 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:msp430_emulator/navigation/bottom_tabs.dart';
+import 'package:highlight/highlight.dart';
+import 'package:msp430_emulator/state/computer/memory_section_provider.dart';
+import 'package:provider/provider.dart';
+
+import 'language_def/msp430_lang.dart';
+import 'state/computer/isolated_computer.dart';
+import 'navigation/bottom_tabs.dart';
+import 'utils/flags.dart';
 
 void main() {
-  runApp(const MyApp());
+  if (!Flags.langDebug) {
+    highlight.registerLanguage('msp430', msp430_lang());
+  }
+  MainSideComputer computer = MainSideComputer();
+  runApp(MyApp(computer: computer));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  MyApp({super.key, required this.computer});
+
+  final MainSideComputer computer;
+  
+  final GlobalKey<State<BottomTabs>> _bottomTabsKey = GlobalKey();
 
   // This widget is the root of your application.
   @override
@@ -17,7 +32,15 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         scaffoldBackgroundColor: const Color(0xFF0A180C),
       ),
-      home: BottomTabs(index: 1),//const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: computer),
+          ChangeNotifierProvider(
+            create: (BuildContext context) => MemorySectionProvider(memorySection: computer.trackedRegisters)
+          )
+        ],
+        child: BottomTabs(key: _bottomTabsKey, index: 1),
+      ),//const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }

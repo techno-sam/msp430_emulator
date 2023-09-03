@@ -34,8 +34,17 @@ dependencies:
   msp430_dart:
     git: https://github.com/techno-sam/msp430_dart.git
 
-  highlight_text: ^1.6.0
+  flutter_highlighter: ^0.1.1
   highlight: ^0.7.0
+  provider: ^6.0.5
+  file_picker: ^5.3.1
+  path_provider: ^2.1.0
+  scrollable_positioned_list: ^0.3.8
+  async: ^2.10.0
+  binary: ^3.0.1
+
+  #editor:
+  #  git: https://github.com/icedman/flutter_editor.git
 
 
   # The following adds the Cupertino Icons font to your application.
