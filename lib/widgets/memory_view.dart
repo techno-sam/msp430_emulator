@@ -152,7 +152,7 @@ class _MemoryViewLineState extends State<_MemoryViewLine> {
       children: [
         Text(
           "0x${(widget.index * bytesPerLine).hexString4}",
-          style: wrap<TextStyle>(
+          style: applyConditional<TextStyle>(
             (pc / bytesPerLine).floor() == widget.index
               ? pcStyle
               : textStyle,
@@ -165,7 +165,7 @@ class _MemoryViewLineState extends State<_MemoryViewLine> {
           ...[
             Text(
               memory == null ? "...." : memory.getWordIndexed(i*2).hexString4.replaceAll("0000", "----"),
-              style: wrap<TextStyle>(
+              style: applyConditional<TextStyle>(
                 (lineStartAddress + (i * 2) == pc)
                   ? pcStyle
                   : (i % 2 == 1 ? textStyle : textStyle2),

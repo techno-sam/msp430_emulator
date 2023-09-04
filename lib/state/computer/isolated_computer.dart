@@ -225,6 +225,8 @@ class ComputerSideComputer {
 }
 
 Future<void> runIsolated(SendPort sendPort) async {
+  bool trackChanges = true;
+
   ReceivePort receivePort = ReceivePort();
   sendPort.send(receivePort.sendPort);
   
@@ -232,7 +234,7 @@ Future<void> runIsolated(SendPort sendPort) async {
 
   ComputerSideComputer computer = ComputerSideComputer();
   computer.computer.reset();
-  computer.computer.memory.trackChanges = true;
+  computer.computer.memory.trackChanges = trackChanges;
 
   int runSteps = 0;
   
@@ -244,7 +246,7 @@ Future<void> runIsolated(SendPort sendPort) async {
     sendPort.send(List<int>.unmodifiable(data));
   }
 
-  (() async {
+  /*(() async {
     while (true) {
       List<int> data = await receive();
       M2CId id = M2CId.values[data[0]];
@@ -285,54 +287,129 @@ Future<void> runIsolated(SendPort sendPort) async {
           break;
       }
     }
-  })();
+  })();*/
+  DateTime stepsStart = DateTime.now();
 
   bool registersChanged = true;
   int knownResetCount = -1;
 
-  for (Register register in computer.computer.registers) {
-    register.onChanged = () => registersChanged = true;
+  if (trackChanges) {
+    for (Register register in computer.computer.registers) {
+      register.onChanged = () => registersChanged = true;
+    }
   }
 
-  while (true) {
+  Completer<List<int>> nextMessage = wrapInCompleter(receive());
+  DateTime nextSync = DateTime.now();
+
+  bool checkForMessages = false;
+  DateTime nextCheck = DateTime.now();
+
+  while (true) { // todo only run checks every ~ 1,000,000 cycles - just checking the time is TOO expensive
     if (runSteps > 0 || runSteps == -1) { // -1 will run forever
+      //print(runSteps);
       computer.computer.step();
       if (runSteps > 0) {
         runSteps--;
+        if (runSteps == 0) {
+          Duration diff = DateTime.now().difference(stepsStart);
+          print("Steps took: $diff (${diff.inMicroseconds} us)");
+        }
       }
     }
 
-    MemorySection? trackedRegisters = computer.trackedRegisters;
-    if (trackedRegisters != null && registersChanged) {
-      registersChanged = false;
-      List<int> data = <int>[
-        C2MId.updateMemory.index,
-        trackedRegisters.id,
-        for (Register register in computer.computer.registers)
-          register.getWordInt(),
-      ];
-      send(data);
+    checkForMessages |= DateTime.now().isAfter(nextCheck);
+    if (checkForMessages) {
+      await Future.delayed(const Duration()); // yield to allow the message queue to handle incoming messages
+      // don't block while waiting for the next message, instead, only run handling if one has arrived
+      if (nextMessage.isCompleted) {
+        checkForMessages = true; // also check on next loop
+        // handle message
+        List<int> data = await nextMessage.future;
+
+        M2CId id = M2CId.values[data[0]];
+        print(id);
+        switch (id) {
+          case M2CId.addTrackedData:
+            MemorySection section = MemorySection(data[1], data[2], data[3]);
+            if (section.id == magicRegisterId) {
+              computer.trackedRegisters = section;
+            } else {
+              computer.trackedMemory[section.id] = section;
+            }
+            break;
+          case M2CId.removeTrackedData:
+            computer.trackedMemory.remove(data[1]);
+            break;
+          case M2CId.loadProgram:
+            print("Computer loading program");
+            computer.computer.reset();
+            int startAddress = (data[1] << 8) + data[2];
+            print("Start address: 0x${startAddress.hexString4}");
+            for (int i = 3; i < data.length; i++) {
+              computer.computer.setByte(startAddress + i - 3, data[i]);
+            }
+            computer.computer.pc.setWord(startAddress);
+            break;
+          case M2CId.runProgram:
+            runSteps = -1;
+            break;
+          case M2CId.stopProgram:
+            runSteps = -2;
+            break;
+          case M2CId.stepProgram:
+            if (runSteps < 0) {
+              runSteps = 0;
+            }
+            runSteps += data[1];
+            stepsStart = DateTime.now();
+            break;
+        }
+
+        nextMessage = wrapInCompleter(receive());
+        nextCheck = DateTime.now().add(const Duration(milliseconds: 500));
+      } else {
+        checkForMessages = false;
+      }
     }
 
-    computer.computer.memory.handleChanges((changedAddress) {
-      int id = (changedAddress / bytesPerLine).floor();
-      computer.trackedMemory[id]?.requiresResend = true;
-    });
+    DateTime now = DateTime.now();
+    if (now.isAfter(nextSync)) {
+      nextSync = now.add(const Duration(milliseconds: 500));
+      print("Syncing");
 
-    for (MemorySection section in computer.trackedMemory.values) {
-      if (knownResetCount != computer.computer.memory.resetCount || section.requiresResend) {
-        section.requiresResend = false;
+      MemorySection? trackedRegisters = computer.trackedRegisters;
+      if (trackedRegisters != null && registersChanged) {
+        registersChanged = false;
         List<int> data = <int>[
           C2MId.updateMemory.index,
-          section.id,
-          for (int memAddress = section.start; memAddress <
-              section.end; memAddress++)
-            computer.computer.memory.getByte(memAddress),
+          trackedRegisters.id,
+          for (Register register in computer.computer.registers)
+            register.getWordInt(),
         ];
         send(data);
       }
+
+      computer.computer.memory.handleChanges((changedAddress) {
+        int id = (changedAddress / bytesPerLine).floor();
+        computer.trackedMemory[id]?.requiresResend = true;
+      });
+
+      for (MemorySection section in computer.trackedMemory.values) {
+        if (knownResetCount != computer.computer.memory.resetCount ||
+            section.requiresResend) {
+          section.requiresResend = false;
+          List<int> data = <int>[
+            C2MId.updateMemory.index,
+            section.id,
+            for (int memAddress = section.start; memAddress <
+                section.end; memAddress++)
+              computer.computer.memory.getByte(memAddress),
+          ];
+          send(data);
+        }
+      }
+      knownResetCount = computer.computer.memory.resetCount;
     }
-    knownResetCount = computer.computer.memory.resetCount;
-    await Future.delayed(const Duration(microseconds: 5));
   }
 }

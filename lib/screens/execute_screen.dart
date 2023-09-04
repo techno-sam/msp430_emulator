@@ -72,6 +72,7 @@ class ExecuteToolbar extends StatelessWidget {
                 File file = File(result.files.single.path!);
                 print("loading program");
                 computer.loadProgram(await file.readAsBytes());
+                print("Done (on main) loading program");
               }
             },
             tooltip: "Open",

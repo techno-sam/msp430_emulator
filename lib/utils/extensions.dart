@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 extension ColorExtension on Color {
@@ -41,6 +43,12 @@ extension IntRepresentations on int {
   }
 }
 
-T wrap<T>(T value, bool apply, T Function(T v) modifier) {
+T applyConditional<T>(T value, bool apply, T Function(T v) modifier) {
   return apply ? modifier(value) : value;
+}
+
+Completer<T> wrapInCompleter<T>(Future<T> future) {
+  final completer = Completer<T>();
+  future.then(completer.complete).catchError(completer.completeError);
+  return completer;
 }
