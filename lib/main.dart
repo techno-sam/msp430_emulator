@@ -1,3 +1,5 @@
+import 'dart:isolate';
+
 import 'package:flutter/material.dart';
 import 'package:highlight/highlight.dart';
 import 'package:msp430_emulator/state/computer/memory_section_provider.dart';

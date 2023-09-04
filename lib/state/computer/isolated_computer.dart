@@ -73,7 +73,8 @@ enum M2CId {
   loadProgram,
   runProgram,
   stopProgram,
-  stepProgram
+  stepProgram,
+  quit
 }
 
 enum C2MId {
@@ -97,11 +98,12 @@ class MainSideComputer extends ChangeNotifier {
   }
 
   void _setup() async {
-    _isolate = await Isolate.spawn(runIsolated, _receivePort.sendPort);
+    _isolate = await Isolate.spawn(runIsolated, _receivePort.sendPort, debugName: "Isolated Computer");
 
     _messages = StreamQueue<dynamic>(_receivePort);
 
     _sendPort = await _messages.next;
+    Isolate.current.addOnExitListener(_sendPort, response: List<int>.unmodifiable(<int>[M2CId.quit.index]));
 
     _initialized = true;
 
@@ -246,48 +248,6 @@ Future<void> runIsolated(SendPort sendPort) async {
     sendPort.send(List<int>.unmodifiable(data));
   }
 
-  /*(() async {
-    while (true) {
-      List<int> data = await receive();
-      M2CId id = M2CId.values[data[0]];
-      //print(id);
-      switch (id) {
-        case M2CId.addTrackedData:
-          MemorySection section = MemorySection(data[1], data[2], data[3]);
-          if (section.id == magicRegisterId) {
-            computer.trackedRegisters = section;
-          } else {
-            computer.trackedMemory[section.id] = section;
-          }
-          break;
-        case M2CId.removeTrackedData:
-          computer.trackedMemory.remove(data[1]);
-          break;
-        case M2CId.loadProgram:
-          print("Computer loading program");
-          computer.computer.reset();
-          int startAddress = (data[1] << 8) + data[2];
-          print("Start address: ${startAddress.hexString4}");
-          for (int i = 3; i < data.length; i++) {
-            computer.computer.setByte(startAddress + i - 3, data[i]);
-          }
-          computer.computer.pc.setWord(startAddress);
-          break;
-        case M2CId.runProgram:
-          runSteps = -1;
-          break;
-        case M2CId.stopProgram:
-          runSteps = -2;
-          break;
-        case M2CId.stepProgram:
-          if (runSteps < 0) {
-            runSteps = 0;
-          }
-          runSteps += data[1];
-          break;
-      }
-    }
-  })();*/
   DateTime stepsStart = DateTime.now();
 
   bool registersChanged = true;
@@ -304,9 +264,15 @@ Future<void> runIsolated(SendPort sendPort) async {
 
   bool checkForMessages = false;
   DateTime nextCheck = DateTime.now();
+  int iterCount = 0;
+  const int recheckInterval = 10000000; // 10,000,000 cycles
+  int recheckCount = 0;
+  DateTime lastCheck = DateTime.now();
 
   while (true) { // todo only run checks every ~ 1,000,000 cycles - just checking the time is TOO expensive
-    if (runSteps > 0 || runSteps == -1) { // -1 will run forever
+    iterCount++;
+    bool running = runSteps > 0 || runSteps == -1;
+    if (running) { // -1 will run forever
       //print(runSteps);
       computer.computer.step();
       if (runSteps > 0) {
@@ -318,11 +284,27 @@ Future<void> runIsolated(SendPort sendPort) async {
       }
     }
 
-    checkForMessages |= DateTime.now().isAfter(nextCheck);
+    if (running && iterCount < recheckInterval) {
+      if (checkForMessages) {
+        iterCount = 0;
+      } else {
+        continue;
+      }
+    }
+
+    DateTime? earlyNow; // try to cache time get
+
+    bool preTime = checkForMessages;
+    if (!checkForMessages) {
+      earlyNow = DateTime.now();
+      checkForMessages = earlyNow.isAfter(nextCheck);
+    }
     if (checkForMessages) {
+      if (running) print("awaiting framework messages while running because ${preTime ? "repeat" : "timer"}");
       await Future.delayed(const Duration()); // yield to allow the message queue to handle incoming messages
       // don't block while waiting for the next message, instead, only run handling if one has arrived
       if (nextMessage.isCompleted) {
+        print("got a message");
         checkForMessages = true; // also check on next loop
         // handle message
         List<int> data = await nextMessage.future;
@@ -364,19 +346,41 @@ Future<void> runIsolated(SendPort sendPort) async {
             runSteps += data[1];
             stepsStart = DateTime.now();
             break;
+          case M2CId.quit:
+            print("Exiting computer isolate");
+            return;
         }
 
         nextMessage = wrapInCompleter(receive());
-        nextCheck = DateTime.now().add(const Duration(milliseconds: 500));
       } else {
         checkForMessages = false;
       }
+      earlyNow ??= DateTime.now();
+      nextCheck = earlyNow.add(Duration(milliseconds: running ? 2000 : 500));
+      print("time to next check: ${earlyNow.difference(nextCheck)}");
     }
 
-    DateTime now = DateTime.now();
+    if (running && iterCount < recheckInterval) continue;
+    iterCount = 0;
+    recheckCount++;
+
+    DateTime now = earlyNow ?? DateTime.now();
+
+    if (running && recheckCount % 10 == 0) {
+      Duration timeSinceLastRecheck = now.difference(lastCheck);
+      lastCheck = now;
+      int cyclesSinceLastCheck = recheckInterval * 10;
+      double usPerCycle = timeSinceLastRecheck.inMicroseconds.toDouble() / cyclesSinceLastCheck;
+      double hz = 1000000 / usPerCycle;
+      double khz = hz / 1000;
+      double mhz = khz / 1000;
+
+      print("$usPerCycle us / cycle ($hz Hz, $khz kHz, $mhz mHz)");
+    }
+
     if (now.isAfter(nextSync)) {
       nextSync = now.add(const Duration(milliseconds: 500));
-      print("Syncing");
+      //print("Syncing");
 
       MemorySection? trackedRegisters = computer.trackedRegisters;
       if (trackedRegisters != null && registersChanged) {
