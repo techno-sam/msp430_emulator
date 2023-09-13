@@ -292,14 +292,14 @@ Future<void> runIsolated(SendPort sendPort) async {
       }
     }
 
-    DateTime? earlyNow; // try to cache time get
+    //DateTime? earlyNow; // try to cache time get
 
     bool preTime = checkForMessages;
     if (!checkForMessages) {
-      earlyNow = DateTime.now();
-      checkForMessages = earlyNow.isAfter(nextCheck);
+      //earlyNow = DateTime.now();
+      //checkForMessages = earlyNow.isAfter(nextCheck);
     }
-    if (checkForMessages) {
+    if (checkForMessages || recheckCount % 3 == 1) {
       if (running) print("awaiting framework messages while running because ${preTime ? "repeat" : "timer"}");
       await Future.delayed(const Duration()); // yield to allow the message queue to handle incoming messages
       // don't block while waiting for the next message, instead, only run handling if one has arrived
@@ -355,18 +355,19 @@ Future<void> runIsolated(SendPort sendPort) async {
       } else {
         checkForMessages = false;
       }
-      earlyNow ??= DateTime.now();
-      nextCheck = earlyNow.add(Duration(milliseconds: running ? 2000 : 500));
-      print("time to next check: ${earlyNow.difference(nextCheck)}");
+      //earlyNow ??= DateTime.now();
+      //nextCheck = earlyNow.add(Duration(milliseconds: running ? 2000 : 500));
+      //print("time to next check: ${earlyNow.difference(nextCheck)}");
     }
 
     if (running && iterCount < recheckInterval) continue;
     iterCount = 0;
     recheckCount++;
 
-    DateTime now = earlyNow ?? DateTime.now();
+    //DateTime now = earlyNow ?? DateTime.now();
 
     if (running && recheckCount % 10 == 0) {
+      DateTime now = DateTime.now(); // special for perf checks
       Duration timeSinceLastRecheck = now.difference(lastCheck);
       lastCheck = now;
       int cyclesSinceLastCheck = recheckInterval * 10;
@@ -378,8 +379,8 @@ Future<void> runIsolated(SendPort sendPort) async {
       print("$usPerCycle us / cycle ($hz Hz, $khz kHz, $mhz mHz)");
     }
 
-    if (now.isAfter(nextSync)) {
-      nextSync = now.add(const Duration(milliseconds: 500));
+    if (recheckCount % 3 == 0) {//now.isAfter(nextSync)) {
+      //nextSync = now.add(const Duration(milliseconds: 500));
       //print("Syncing");
 
       MemorySection? trackedRegisters = computer.trackedRegisters;
