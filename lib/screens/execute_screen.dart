@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
 import 'package:msp430_emulator/widgets/memory_view.dart';
 import 'package:msp430_emulator/widgets/register_list.dart';
+import 'package:msp430_emulator/widgets/text_buffer_view.dart';
 import 'package:provider/provider.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 
@@ -21,7 +22,15 @@ class ExecuteScreen extends StatelessWidget {
         children: [
           ExecuteToolbar(computer: computer),
           const RegisterList(compact: true),
-          const MemoryView()
+          Expanded(
+            child: Row(
+              children: const [
+                MemoryView(),
+                VerticalDivider(color: ColorExtension.unselectedGreen, width: 8,),
+                TextBufferView(),
+              ],
+            ),
+          )
         ],
       ),
     );

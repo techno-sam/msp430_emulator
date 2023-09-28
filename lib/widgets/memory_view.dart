@@ -59,7 +59,7 @@ class _MemoryViewState extends State<MemoryView> {
       child: Container(
         color: ColorExtension.deepSlateBlue,
         child: ListView.builder(
-          key: _listKey,
+          key: const PageStorageKey<String>("scroller_for_mem_view"),//_listKey,
           padding: const EdgeInsets.all(8),
           controller: scroller,
           itemCount: (0x10000 / bytesPerLine).round() - 1, // 16 bytes per line
@@ -104,7 +104,7 @@ class _MemoryViewLineState extends State<_MemoryViewLine> {
   @override
   void initState() {
     _disposed = false;
-    Timer.periodic(const Duration(milliseconds: 50), (timer) {
+    Timer.periodic(Duration(milliseconds: 50, microseconds: widget.index % 1000), (timer) {
       if (_disposed) {
         timer.cancel();
         return;
@@ -116,7 +116,8 @@ class _MemoryViewLineState extends State<_MemoryViewLine> {
             widget.index * bytesPerLine + bytesPerLine);
         _memorySection?.onChanged[_changeKey] = () => setState(() {});
 
-        widget.computer.trackedRegisters.onChanged[_registerChangeKey] = () => setState(() {});
+        widget.computer.trackedRegisters.onChanged[_registerChangeKey] =
+            () => setState(() {});
         setState(() {});
       }
     });
@@ -127,10 +128,13 @@ class _MemoryViewLineState extends State<_MemoryViewLine> {
   void dispose() {
     _disposed = true;
     if (_memorySection != null) {
-      _memorySection!.onChanged.remove(_changeKey);
-      int id = _memorySection!.id;
-      _memorySection = null;
-      Future.delayed(const Duration(microseconds: 1), () => widget.computer.untrackMemory(id));
+      () async {
+        _memorySection!.onChanged.remove(_changeKey);
+        int id = _memorySection!.id;
+        _memorySection = null;
+        Future.delayed(Duration(milliseconds: 1, microseconds: widget.index % 1000), () =>
+            widget.computer.untrackMemory(id));
+      }();
     }
     widget.computer.trackedRegisters.onChanged.remove(_registerChangeKey);
     super.dispose();
@@ -147,6 +151,15 @@ class _MemoryViewLineState extends State<_MemoryViewLine> {
     int sp = widget.computer.trackedRegisters.getIndexed(1);
 
     int lineStartAddress = widget.index * bytesPerLine;
+
+    String lineString = "";
+
+    if (memory != null) {
+      for (int i = 0; i < bytesPerLine; i++) {
+        int memVal = memory.getIndexed(i);
+        lineString += memVal < 32 || memVal > 126 ? "." : String.fromCharCode(memVal);
+      }
+    }
 
     return Row(
       children: [
@@ -177,6 +190,11 @@ class _MemoryViewLineState extends State<_MemoryViewLine> {
             ),
             const SizedBox(width: 10),
           ],
+        const SizedBox(width: 30),
+        Text(
+          lineString,
+          style: textStyle
+        ),
       ],
     );
   }

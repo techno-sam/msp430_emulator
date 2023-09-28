@@ -12,15 +12,30 @@ import 'package:msp430_dart/msp430_dart.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
 import 'package:msp430_emulator/widgets/memory_view.dart';
 
+abstract class AbstractMemorySection {
+  int get start;
+  int get end;
+  int get size;
+
+  void runOnChanged();
+
+  int getIndexed(int idx);
+  int getWordIndexed(int idx);
+  int getAbsolute(int location);
+}
+
 const int magicRegisterId = -1;
-class MemorySection {
+class MemorySection implements AbstractMemorySection {
+  @override
   int get start => _start;
   late final int _start;
 
   /// exclusive
+  @override
   int get end => _end;
   late final int _end;
 
+  @override
   int get size => _size;
   late final int _size;
   
@@ -30,6 +45,10 @@ class MemorySection {
 
   Map<Object, void Function()> onChanged = {}; // used on main side
 
+  bool forceLoad = false;
+  int trackCount = 0;
+
+  @override
   void runOnChanged() {
     for (void Function() changeFunc in onChanged.values) {
       changeFunc();
@@ -44,16 +63,18 @@ class MemorySection {
     _size = end - start;
 
     assert (start >= 0 && start <= 0xffff);
-    assert (end >= 0 && end <= 0xffff);
+    assert (end >= 0 && end <= 0xffff+1);
     assert (_size >= 0);
 
     _data = List<int>.filled(size, 0);
   }
 
+  @override
   int getIndexed(int idx) {
     return _data[idx];
   }
 
+  @override
   int getWordIndexed(int idx) {
     if (idx % 2 != 0) {
       idx--;
@@ -62,9 +83,66 @@ class MemorySection {
     return (_data[idx] << 8) + _data[idx+1];
   }
 
+  @override
   int getAbsolute(int location) {
     return _data[location - start];
   }
+}
+
+// 32 x 32 -> 64x 16-byte lines
+class TextBufferMemorySection implements AbstractMemorySection {
+
+  Map<Object, void Function()> onChanged = {}; // used on main side
+
+  final Object _changeKey = Object();
+
+  final List<MemorySection> _sections = [];
+
+  void initSections(MainSideComputer computer) {
+    for (int i = 0; i < 64; i++) {
+      MemorySection section = computer.trackMemory(start + (i * 16), start + (i * 16) + 16)!;
+      section.forceLoad = true;
+      section.onChanged[_changeKey] = () => runOnChanged();
+      _sections.add(section);
+    }
+    print("initialized all sections");
+  }
+
+  @override
+  void runOnChanged() {
+    for (void Function() changeFunc in onChanged.values) {
+      changeFunc();
+    }
+  }
+
+  @override
+  int getIndexed(int idx) {
+    MemorySection targetSection = _sections[(idx / 16).floor()];
+    return targetSection.getIndexed(idx % 16);
+  }
+
+  @override
+  int getWordIndexed(int idx) {
+    if (idx % 2 != 0) {
+      idx--;
+    }
+
+    return (getIndexed(idx) << 8) + getIndexed(idx+1);
+  }
+
+  @override
+  int getAbsolute(int location) {
+    return getIndexed(location - start);
+  }
+
+  @override
+  int get size => 32 * 32;
+
+  @override
+  int get start => (end - size + 1) & 0xfff0;
+
+  @override
+  int get end => 0xffff;
 }
 
 enum M2CId {
@@ -91,6 +169,7 @@ class MainSideComputer extends ChangeNotifier {
   //int _highestMemoryId = 1;
   final Map<int, MemorySection> _trackedMemory = {};
   final MemorySection trackedRegisters = MemorySection(magicRegisterId, 0, 16); // 16 registers, each is a word
+  final TextBufferMemorySection textBuffer = TextBufferMemorySection();
 
   MainSideComputer() {
     _receivePort = ReceivePort("mainReceiver");
@@ -114,6 +193,8 @@ class MainSideComputer extends ChangeNotifier {
       trackedRegisters.end
     ]);
 
+    textBuffer.initSections(this);
+
     await _receiveLoop();
   }
 
@@ -134,7 +215,7 @@ class MainSideComputer extends ChangeNotifier {
           notifyListeners();
           break;
       }
-      await Future.delayed(const Duration(milliseconds: 50));
+      await Future.delayed(const Duration(microseconds: 50));
     }
   }
 
@@ -166,10 +247,11 @@ class MainSideComputer extends ChangeNotifier {
     int id = (start / bytesPerLine).floor();
 
     if (_trackedMemory.containsKey(id)) {
-      return _trackedMemory[id];
+      return _trackedMemory[id]?..trackCount += 1;
     }
     
     MemorySection section = MemorySection(id, start, end);
+    section.trackCount = 1;
     _trackedMemory[id] = section;
     _send([
       M2CId.addTrackedData.index,
@@ -183,6 +265,9 @@ class MainSideComputer extends ChangeNotifier {
   void untrackMemory(int id) {
     if (!_initialized) return;
     if (_trackedMemory.containsKey(id)) {
+      if (_trackedMemory[id]!.forceLoad == true) return;
+      _trackedMemory[id]!.trackCount -= 1;
+      if (_trackedMemory[id]!.trackCount > 0) return;
       _trackedMemory.remove(id);
       _send([
         M2CId.removeTrackedData.index,
@@ -265,7 +350,7 @@ Future<void> runIsolated(SendPort sendPort) async {
   bool checkForMessages = false;
   DateTime nextCheck = DateTime.now();
   int iterCount = 0;
-  const int recheckInterval = 10000000; // 10,000,000 cycles
+  const int recheckInterval = 1000000; // 1,000,000 cycles
   int recheckCount = 0;
   DateTime lastCheck = DateTime.now();
 
@@ -402,7 +487,7 @@ Future<void> runIsolated(SendPort sendPort) async {
 
       for (MemorySection section in computer.trackedMemory.values) {
         if (knownResetCount != computer.computer.memory.resetCount ||
-            section.requiresResend) {
+            section.requiresResend || (running ? false : DateTime.now().isAfter(nextCheck))) {
           section.requiresResend = false;
           List<int> data = <int>[
             C2MId.updateMemory.index,
@@ -413,6 +498,9 @@ Future<void> runIsolated(SendPort sendPort) async {
           ];
           send(data);
         }
+      }
+      if (!running && DateTime.now().isAfter(nextCheck)) {
+        nextCheck = DateTime.now().add(const Duration(seconds: 4));
       }
       knownResetCount = computer.computer.memory.resetCount;
     }

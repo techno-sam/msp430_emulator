@@ -108,8 +108,23 @@ Mode msp430_lang() {
       ),
       Mode(ref: "~symbol"),
       Mode(
-        className: "variable",
+        className: "meta",
         begin: "\\.define \"(.*)\",? *([A-z\$_][A-z0-9\$_]*)"
+      ),
+      Mode(
+        className: "meta",
+        begin: r"\.(data|text)"
+      ),
+      Mode(
+        className: "meta",
+        begin: r"\.cstr8 ",
+        contains: [
+          Mode(
+            className: "string",
+            begin: r"[^;]*",
+            endsParent: true,
+          )
+        ]
       ),
       Mode(
         className: "operator",

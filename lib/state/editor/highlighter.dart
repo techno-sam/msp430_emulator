@@ -23,6 +23,7 @@ Map<String, TextStyle> get editorTheme {
   newTheme['underline'] = const TextStyle(decoration: TextDecoration.underline);
   newTheme['attribute'] = newTheme['attribute']!.copyWith(decoration: TextDecoration.underline);
   newTheme['operator'] = newTheme['operator']!.copyWith(decoration: TextDecoration.underline);
+  newTheme['meta'] = const TextStyle(color: Color(0xff17e1c9));
   return newTheme;//gradientDarkTheme;
 }
 //var editorTheme = atelierHeathDarkTheme;
