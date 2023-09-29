@@ -1,5 +1,7 @@
 import 'dart:core';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:msp430_emulator/ffi_bindings/shmem.dart';
 //import 'package:editor/editor/editor.dart' as editor;
 
 class TestScreen1 extends StatelessWidget {
@@ -16,7 +18,10 @@ class TestScreen2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder(color: Colors.green);
+    int sum = Shmem().add(2, 3);
+    return Center(
+      child: Text("'$sum' should be 5", style: TextStyle(color: Colors.red)),
+    );
   }
 }
 
