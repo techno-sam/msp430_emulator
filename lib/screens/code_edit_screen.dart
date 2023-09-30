@@ -1,12 +1,9 @@
-import 'dart:math';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:highlight/highlight.dart';
 import 'package:msp430_emulator/language_def/msp430_lang.dart';
 import 'package:msp430_emulator/utils/flags.dart';
 import 'package:msp430_emulator/widgets/code_editor.dart';
-
-import '../widgets/editor_view.dart';
 
 class CodeEditScreen extends StatefulWidget {
   final String path;
@@ -50,11 +47,13 @@ class _CodeEditScreenState extends State<CodeEditScreen> {
             children: [
               ElevatedButton.icon(
                 onPressed: () async {
-                  print("Reloading");
-                  highlight.registerLanguage('msp430', msp430_lang());
+                  if (kDebugMode) {
+                    print("Reloading");
+                  }
+                  highlight.registerLanguage('msp430', msp430Lang());
                 },
-                icon: Icon(Icons.language),
-                label: Text("Reload Language")),
+                icon: const Icon(Icons.language),
+                label: const Text("Reload Language")),
             ],
           ),
           Expanded(child: editor)

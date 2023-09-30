@@ -1,4 +1,5 @@
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:highlight/highlight.dart';
@@ -404,7 +405,9 @@ class _CodeEditorState extends State<CodeEditor> {
       ),
       onTapDown: (TapDownDetails details) {
         Offset o = screenToCursor(context.findRenderObject(), details.globalPosition);
-        print(o);
+        if (kDebugMode) {
+          print(o);
+        }
         setState(() {
           cursorLine = o.dy.round();
           cursorColumn = o.dx.round();

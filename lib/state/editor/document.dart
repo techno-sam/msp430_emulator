@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:msp430_emulator/state/editor/input.dart';
 
 class Cursor {
   Cursor(
@@ -56,6 +56,7 @@ class Document {
   Cursor cursor = Cursor();
   String _clipboardText = '';
 
+  // ignore: unnecessary_getters_setters
   String get clipboardText => _clipboardText;
   set clipboardText(String clipboardText) {
     _clipboardText = clipboardText;
@@ -310,7 +311,9 @@ class Document {
     Cursor cur = cursor.normalized();
     List<String> res = selectedLines();
     if (res.length == 1) {
-      print(cur.anchorColumn - cur.column);
+      if (kDebugMode) {
+        print(cur.anchorColumn - cur.column);
+      }
       deleteText(numberOfCharacters: cur.anchorColumn - cur.column);
       clearSelection();
       return;

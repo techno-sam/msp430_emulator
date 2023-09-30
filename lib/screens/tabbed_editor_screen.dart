@@ -111,7 +111,7 @@ class _TabbedEditorScreenState extends State<TabbedEditorScreen> {
         ),
       );
     }
-    final String finalSelectedFile = this.selectedFile!;
+    final String finalSelectedFile = selectedFile!;
     return Center(
       child: Column(
         children: [

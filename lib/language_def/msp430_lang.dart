@@ -1,9 +1,11 @@
 import 'package:highlight/highlight.dart';
+// ignore: implementation_imports
 import 'package:highlight/src/common_modes.dart';
 
+// ignore: constant_identifier_names
 const MATCH_NOTHING = r"^$";
 
-Mode msp430_lang() {
+Mode msp430Lang() {
   return Mode(
     refs: {
       "~symbol": Mode(

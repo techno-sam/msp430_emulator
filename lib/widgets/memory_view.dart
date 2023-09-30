@@ -1,11 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:msp430_emulator/state/editor/highlighter.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
 import 'package:provider/provider.dart';
 
-import '../state/computer/isolated_computer.dart';
+import '../state/shmem.dart';
 
 const int bytesPerLine = 16;
 
@@ -35,14 +33,12 @@ class MemoryView extends StatefulWidget {
 class _MemoryViewState extends State<MemoryView> {
 
   late ScrollController scroller;
-  late Key _listKey;
   final _TimeoutTracker _timeout = _TimeoutTracker();
 
   @override
   void initState() {
     scroller = ScrollController();
     scroller.addListener(() => _timeout.timeout(const Duration(milliseconds: 600)));
-    _listKey = const Key("listViewMemoryThing");
     super.initState();
   }
   
@@ -54,7 +50,6 @@ class _MemoryViewState extends State<MemoryView> {
 
   @override
   Widget build(BuildContext context) {
-    MainSideComputer computer = Provider.of<MainSideComputer>(context, listen: false);
     return Expanded(
       child: Container(
         color: ColorExtension.deepSlateBlue,
@@ -67,8 +62,6 @@ class _MemoryViewState extends State<MemoryView> {
             return _MemoryViewLine(
               key: _MemoryLineKey(idx),
               index: idx,
-              computer: computer,
-              timeoutTracker: _timeout,
             );
           },
           findChildIndexCallback: (key) {
@@ -84,7 +77,7 @@ class _MemoryViewState extends State<MemoryView> {
   }
 }
 
-class _MemoryViewLine extends StatefulWidget {
+/*class _MemoryViewLine extends StatefulWidget {
   const _MemoryViewLine({super.key, required this.index, required this.computer, required this.timeoutTracker});
   final int index;
   final MainSideComputer computer;
@@ -92,84 +85,43 @@ class _MemoryViewLine extends StatefulWidget {
 
   @override
   State<_MemoryViewLine> createState() => _MemoryViewLineState();
-}
+}*/
 
-class _MemoryViewLineState extends State<_MemoryViewLine> {
+class _MemoryViewLine extends StatelessWidget {
 
-  MemorySection? _memorySection;
-  bool _disposed = false;
-  final Object _changeKey = Object();
-  final Object _registerChangeKey = Object();
+  final int index;
 
-  @override
-  void initState() {
-    _disposed = false;
-    Timer.periodic(Duration(milliseconds: 50, microseconds: widget.index % 1000), (timer) {
-      if (_disposed) {
-        timer.cancel();
-        return;
-      }
-      if (!widget.timeoutTracker.isTimedOut) {
-        timer.cancel();
-        _memorySection = widget.computer.trackMemory(
-            widget.index * bytesPerLine,
-            widget.index * bytesPerLine + bytesPerLine);
-        _memorySection?.onChanged[_changeKey] = () => setState(() {});
-
-        widget.computer.trackedRegisters.onChanged[_registerChangeKey] =
-            () => setState(() {});
-        setState(() {});
-      }
-    });
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _disposed = true;
-    if (_memorySection != null) {
-      () async {
-        _memorySection!.onChanged.remove(_changeKey);
-        int id = _memorySection!.id;
-        _memorySection = null;
-        Future.delayed(Duration(milliseconds: 1, microseconds: widget.index % 1000), () =>
-            widget.computer.untrackMemory(id));
-      }();
-    }
-    widget.computer.trackedRegisters.onChanged.remove(_registerChangeKey);
-    super.dispose();
-  }
+  const _MemoryViewLine({super.key, required this.index});
 
   @override
   Widget build(BuildContext context) {
-    final MemorySection? memory = _memorySection;
+    final RegistersProvider reg = Provider.of<RegistersProvider>(context);
+    final MemoryProvider mem = Provider.of<MemoryProvider>(context);
     const TextStyle textStyle = TextStyle(fontFamily: fontFamily, fontSize: 14, color: ColorExtension.selectedGreen);
     const TextStyle textStyle2 = TextStyle(fontFamily: fontFamily, fontSize: 14, color: ColorExtension.unselectedGreen);
     const TextStyle pcStyle = TextStyle(fontFamily: fontFamily, fontSize: 14, color: Colors.cyanAccent);
 
-    int pc = widget.computer.trackedRegisters.getIndexed(0);
-    int sp = widget.computer.trackedRegisters.getIndexed(1);
+    int pc = reg.getValue(0);
+    int sp = reg.getValue(1);
 
-    int lineStartAddress = widget.index * bytesPerLine;
+    int lineStartAddress = index * bytesPerLine;
 
     String lineString = "";
 
-    if (memory != null) {
-      for (int i = 0; i < bytesPerLine; i++) {
-        int memVal = memory.getIndexed(i);
-        lineString += memVal < 32 || memVal > 126 ? "." : String.fromCharCode(memVal);
-      }
+    for (int i = 0; i < bytesPerLine; i++) {
+      int memVal = mem.get(lineStartAddress + i);
+      lineString += memVal < 32 || memVal > 126 ? "." : String.fromCharCode(memVal);
     }
 
     return Row(
       children: [
         Text(
-          "0x${(widget.index * bytesPerLine).hexString4}",
+          "0x${(index * bytesPerLine).hexString4}",
           style: applyConditional<TextStyle>(
-            (pc / bytesPerLine).floor() == widget.index
+            (pc / bytesPerLine).floor() == index
               ? pcStyle
               : textStyle,
-              (sp / bytesPerLine).floor() == widget.index,
+              (sp / bytesPerLine).floor() == index,
               (t) => t.copyWith(backgroundColor: Colors.deepPurple)
           )
         ),
@@ -177,7 +129,7 @@ class _MemoryViewLineState extends State<_MemoryViewLine> {
         for (int i = 0; i < bytesPerLine/2; i++)
           ...[
             Text(
-              memory == null ? "...." : memory.getWordIndexed(i*2).hexString4.replaceAll("0000", "----"),
+              mem.getWord(lineStartAddress + i*2).hexString4.replaceAll("0000", "----"),
               style: applyConditional<TextStyle>(
                 (lineStartAddress + (i * 2) == pc)
                   ? pcStyle

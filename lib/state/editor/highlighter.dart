@@ -1,11 +1,5 @@
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter_highlighter/themes/arta.dart';
-import 'package:flutter_highlighter/themes/ascetic.dart';
-import 'package:flutter_highlighter/themes/atelier-heath-dark.dart';
 import 'package:flutter_highlighter/themes/atom-one-dark-reasonable.dart';
-import 'package:flutter_highlighter/themes/gradient-dark.dart';
-import 'package:flutter_highlighter/themes/zenburn.dart';
 import 'package:highlight/highlight.dart';
 
 import 'document.dart';
@@ -139,22 +133,6 @@ class _Stack<T> {
 
   T? peek() {
     return _internal.isEmpty ? null : _internal.last;
-  }
-}
-
-class _StyleStack extends _Stack<TextStyle> {
-  final TextStyle? defaultStyle;
-
-  _StyleStack(this.defaultStyle);
-
-  @override
-  TextStyle? pop() {
-    return super.pop() ?? defaultStyle;
-  }
-
-  @override
-  TextStyle? peek() {
-    return super.peek() ?? defaultStyle;
   }
 }
 

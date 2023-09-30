@@ -89,12 +89,12 @@ class InputListener extends StatefulWidget {
 
   const InputListener({required this.child, super.key});
   @override
-  _InputListener createState() => _InputListener();
+  State<InputListener> createState() => _InputListener();
 }
 
 class _InputListener extends State<InputListener> {
   late FocusNode focusNode;
-  bool _shift_down = false;
+  bool _shiftDown = false;
 
   @override
   void initState() {
@@ -118,6 +118,7 @@ class _InputListener extends State<InputListener> {
     Document d = doc.doc;
     return GestureDetector(
         child: Focus(
+            // ignore: sort_child_properties_last
             child: widget.child,
             focusNode: focusNode,
             autofocus: true,
@@ -126,7 +127,7 @@ class _InputListener extends State<InputListener> {
               if (event.logicalKey.keyLabel.length > 1) {
                 key = event.logicalKey.keyLabel;
               }
-              _shift_down = event.isShiftPressed;
+              _shiftDown = event.isShiftPressed;
               if (event.runtimeType.toString() == 'RawKeyDownEvent') {
                 switch (key) {
                   case 'Home':
@@ -220,7 +221,7 @@ class _InputListener extends State<InputListener> {
           Offset o = screenToCursor(
               context.findRenderObject(), details.globalPosition);
           if (o.dx == -1 || o.dy == -1) return;
-          d.moveCursor(o.dy.round(), (o.dx+0.5).round(), keepAnchor: (details.kind == PointerDeviceKind.mouse || details.kind == PointerDeviceKind.trackpad) && _shift_down);
+          d.moveCursor(o.dy.round(), (o.dx+0.5).round(), keepAnchor: (details.kind == PointerDeviceKind.mouse || details.kind == PointerDeviceKind.trackpad) && _shiftDown);
           doc.touch();
         },
         onPanUpdate: (DragUpdateDetails details) {

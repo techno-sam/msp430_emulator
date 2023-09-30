@@ -202,9 +202,9 @@ class ViewLine extends StatelessWidget {
     TextPainter? painter() {
       if (size.width > 0 && spans.isNotEmpty && spans[0] is TextSpan) {
         TextSpan ts = spans[0] as TextSpan;
-        extents = getTextExtents('|', ts.style ?? TextStyle());
+        extents = getTextExtents('|', ts.style ?? const TextStyle());
         return TextPainter(
-            text: TextSpan(text: text ?? '', style: ts.style),
+            text: TextSpan(text: text, style: ts.style),
             textDirection: TextDirection.ltr)
           ..layout(minWidth: 0, maxWidth: size.width - gutterWidth);
       }

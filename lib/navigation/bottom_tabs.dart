@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:msp430_emulator/screens/code_edit_screen.dart';
 import 'package:msp430_emulator/screens/execute_screen.dart';
 import 'package:msp430_emulator/screens/tabbed_editor_screen.dart';
 import 'package:msp430_emulator/utils/extensions.dart';

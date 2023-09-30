@@ -1,26 +1,27 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
 import 'package:msp430_emulator/widgets/memory_view.dart';
 import 'package:msp430_emulator/widgets/register_list.dart';
-import 'package:msp430_emulator/widgets/text_buffer_view.dart';
 import 'package:provider/provider.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 
-import '../state/computer/isolated_computer.dart';
+import '../state/shmem.dart';
+import '../widgets/text_buffer_view.dart';
 
 class ExecuteScreen extends StatelessWidget {
   const ExecuteScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    MainSideComputer computer = Provider.of<MainSideComputer>(context);
+    ShmemProvider shmem = Provider.of<ShmemProvider>(context);
     return Center(
       child: Column(
         children: [
-          ExecuteToolbar(computer: computer),
+          ExecuteToolbar(shmem: shmem),
           const RegisterList(compact: true),
           Expanded(
             child: Row(
@@ -41,10 +42,10 @@ class ExecuteScreen extends StatelessWidget {
 class ExecuteToolbar extends StatelessWidget {
   const ExecuteToolbar({
     super.key,
-    required this.computer,
+    required this.shmem,
   });
 
-  final MainSideComputer computer;
+  final ShmemProvider shmem;
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +63,8 @@ class ExecuteToolbar extends StatelessWidget {
       child: Row(
         children: [
           Spacer(flex: endFlex),
+          const ReloadButton(),
+          Spacer(flex: interGroupFlex),
           IconButton(
             onPressed: () async {
               Directory initialDirectory = Directory.fromUri(
@@ -78,10 +81,13 @@ class ExecuteToolbar extends StatelessWidget {
               );
 
               if (result != null && result.files.single.path != null) {
-                File file = File(result.files.single.path!);
-                print("loading program");
-                computer.loadProgram(await file.readAsBytes());
-                print("Done (on main) loading program");
+                if (kDebugMode) {
+                  print("loading program");
+                }
+                shmem.loadProgram(result.files.single.path!);
+                if (kDebugMode) {
+                  print("Done (on main) loading program");
+                }
               }
             },
             tooltip: "Open",
@@ -93,7 +99,7 @@ class ExecuteToolbar extends StatelessWidget {
           ),
           Spacer(flex: interGroupFlex),
           IconButton(
-            onPressed: computer.runProgram,
+            onPressed: shmem.runProgram,
             tooltip: "Run",
             icon: const Icon(Icons.play_circle_outline),
             color: ColorExtension.selectedGreen,
@@ -103,7 +109,7 @@ class ExecuteToolbar extends StatelessWidget {
           ),
           Spacer(flex: intraGroupFlex),
           IconButton(
-            onPressed: computer.stopProgram,
+            onPressed: shmem.stopProgram,
             tooltip: "Stop",
             icon: const Icon(Icons.stop_circle_outlined),
             color: ColorExtension.selectedGreen,
@@ -112,13 +118,13 @@ class ExecuteToolbar extends StatelessWidget {
             ),
           ),
           Spacer(flex: interGroupFlex),
-          for (int i in [1, 5, 10, 20, 100, 500])
+          for (int i in [1, 5, 10, 20, 100, 200])
             ...[
               Tooltip(
                 message: "Step $i",
                 child: TextButton(
                   onPressed: () {
-                    computer.stepProgram(i);
+                    shmem.stepProgram(i);
                   },
                   //color: ColorExtension.selectedGreen,
                   style: TextButton.styleFrom(
@@ -128,11 +134,36 @@ class ExecuteToolbar extends StatelessWidget {
                   child: Text("$i", style: const TextStyle(color: ColorExtension.selectedGreen)),
                 ),
               ),
-              if(i != 500)
+              if(i != 200)
                 Spacer(flex: intraGroupFlex),
           ],
           Spacer(flex: endFlex),
         ],
+      ),
+    );
+  }
+}
+
+class ReloadButton extends StatelessWidget {
+  const ReloadButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final ShmemProvider shmem = Provider.of<ShmemProvider>(context);
+    final bool isReal = shmem.shmem.isReal();
+    return IconButton(
+      onPressed: () {
+        shmem.reload();
+      },
+      tooltip: "Reload backend (${isReal ? 'present' : 'not present'})",
+      icon: const Icon(Icons.refresh_outlined),
+      color: isReal
+          ? ColorExtension.selectedGreen
+          : Colors.red,
+      style: IconButton.styleFrom(
+          backgroundColor: isReal
+              ? ColorExtension.selectedGreen.invert.withBrightness(0.75)
+              : ColorExtension.selectedGreen.invert.withBrightness(0.2)
       ),
     );
   }

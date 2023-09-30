@@ -1,48 +1,64 @@
-import 'dart:isolate';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:highlight/highlight.dart';
-import 'package:msp430_emulator/state/computer/memory_section_provider.dart';
+import 'package:msp430_emulator/ffi_bindings/shmem.dart';
+import 'package:msp430_emulator/state/shmem.dart';
 import 'package:provider/provider.dart';
 
 import 'language_def/msp430_lang.dart';
-import 'state/computer/isolated_computer.dart';
 import 'navigation/bottom_tabs.dart';
 import 'utils/flags.dart';
 
 void main() {
   if (!Flags.langDebug) {
-    highlight.registerLanguage('msp430', msp430_lang());
+    highlight.registerLanguage('msp430', msp430Lang());
   }
-  MainSideComputer computer = MainSideComputer();
-  runApp(MyApp(computer: computer));
+  //MainSideComputer computer = MainSideComputer();
+  //print(File(".").absolute.path);
+  Shmem shmem = Shmem();
+  runApp(MyApp(shmem: shmem));
 }
 
 class MyApp extends StatelessWidget {
-  MyApp({super.key, required this.computer});
+  MyApp({super.key, required this.shmem}) {
+    shmemProvider = ShmemProvider(shmem);
+    registersProvider = RegistersProvider(shmem);
+    memoryProvider = MemoryProvider(shmem);
+  }
 
-  final MainSideComputer computer;
+  final Shmem shmem;
+  late final ShmemProvider shmemProvider;
+  late final RegistersProvider registersProvider;
+  late final MemoryProvider memoryProvider;
   
   final GlobalKey<State<BottomTabs>> _bottomTabsKey = GlobalKey();
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'MSP430 Emulator',
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFF0A180C),
+    return WillPopScope(
+      onWillPop: () async {
+        if (kDebugMode) {
+          print("POP!");
+        }
+        shmem.destroy();
+        return true;
+      },
+      child: MaterialApp(
+        title: 'MSP430 Emulator',
+        theme: ThemeData(
+          useMaterial3: true,
+          scaffoldBackgroundColor: const Color(0xFF0A180C),
+        ),
+        home: MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: shmemProvider),
+            ChangeNotifierProvider.value(value: registersProvider),
+            ChangeNotifierProvider.value(value: memoryProvider),
+          ],
+          child: BottomTabs(key: _bottomTabsKey, index: 1),
+        ),//const MyHomePage(title: 'Flutter Demo Home Page'),
       ),
-      home: MultiProvider(
-        providers: [
-          ChangeNotifierProvider.value(value: computer),
-          ChangeNotifierProvider(
-            create: (BuildContext context) => MemorySectionProvider(memorySection: computer.trackedRegisters)
-          )
-        ],
-        child: BottomTabs(key: _bottomTabsKey, index: 1),
-      ),//const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
