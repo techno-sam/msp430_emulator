@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import '../state/editor/highlighter.dart';
 import '../state/editor/input.dart';
 import '../utils/async_utils.dart';
-import 'editor_view.dart';
+import 'editor_view.dart' as ev;
 
 class Editor extends StatefulWidget {
   const Editor({super.key, this.path = '', required this.restoreTextFromBucket, required this.setUnsavedState});
@@ -18,8 +18,8 @@ class Editor extends StatefulWidget {
 }
 
 class _Editor extends State<Editor> {
-  late DocumentProvider doc;
-  late CaretPulse pulse;
+  late ev.DocumentProvider doc;
+  late ev.CaretPulse pulse;
   final NestableLock _restoreLock = NestableLock();
   bool _firstRestore = true;
 
@@ -35,14 +35,14 @@ class _Editor extends State<Editor> {
 
   @override
   void initState() {
-    doc = DocumentProvider();
+    doc = ev.DocumentProvider();
     doc.doc.unsavedNotifier = _unsavedNotifier;
     if (!widget.restoreTextFromBucket) {
       _loadFile();
     } else {
       doc.doc.docPath = widget.path;
     }
-    pulse = CaretPulse();
+    pulse = ev.CaretPulse();
     super.initState();
   }
 
@@ -72,7 +72,7 @@ class _Editor extends State<Editor> {
       Provider(create: (context) => Highlighter()),
     ], child: Stack(
       children: [
-        const InputListener(child: View(key: PageStorageKey("view"))),
+        const InputListener(child: ev.View(key: PageStorageKey("view"))),
         Align(
           alignment: AlignmentDirectional.bottomEnd,
           child: Padding(
@@ -107,7 +107,7 @@ class CompileStatusIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    DocumentProvider doc = Provider.of<DocumentProvider>(context);
+    ev.DocumentProvider doc = Provider.of<ev.DocumentProvider>(context);
     return Icon(
       icon,
       color: doc.assemblyStatus.color,

@@ -85,6 +85,7 @@ if(PLUGIN_BUNDLED_LIBRARIES)
     DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
     COMPONENT Runtime)
 endif()
+install(FILES "../target/release/shmem_ffi.dll" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
 
 # Fully re-copy the assets directory on each build to avoid having stale files
 # from a previous install.

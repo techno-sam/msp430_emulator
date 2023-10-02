@@ -35,7 +35,7 @@ DynamicLibrary load({String basePath = ''}) {
   } else if (Platform.isMacOS) {
     return DynamicLibrary.open('${basePath}libshmem_ffi.dylib');
   } else if (Platform.isWindows) {
-    return DynamicLibrary.open('${basePath}libshmem_ffi.dll');
+    return DynamicLibrary.open('${basePath}shmem_ffi.dll');
   } else {
     throw NotSupportedPlatform('${Platform.operatingSystem} is not supported!');
   }
