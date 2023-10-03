@@ -46,7 +46,7 @@ class HomeScreen extends StatelessWidget {
         ),
         const BodySection(
           title: "About",
-          body: "Lorem ipsum dolor sit amet",
+          body: "An emulator GUI for the MSP430 chip",
         ),
         BodySection(
           title: "License",
