@@ -49,6 +49,11 @@ jobs:
         with:
           # Make Rust compile to our target (defined in the matrix)
           targets: ${{ matrix.target }}
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable' # or: 'beta', 'dev' or 'master'
+      - run: flutter --version
       - name: Get the release version from the tag
         shell: bash
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
