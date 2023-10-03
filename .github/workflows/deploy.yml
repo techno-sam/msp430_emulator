@@ -83,9 +83,9 @@ jobs:
           echo "Copying..."
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             cp "target/${{ matrix.target }}/release/libshmem_ffi.so" "target/release/"
-          elif [ "${{ matrix.os }}" = "windows-latest" ];
+          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
             cp "target/${{ matrix.target }}/release/shmem_ffi.dll" "target/release/"
-          elif [ "${{ matrix.os }}" = "macos-latest" ];
+          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
             cp "target/${{ matrix.target }}/release/libshmem_ffi.dylib" "target/release/"
           fi
           echo "directory: target/release (after copy)"
