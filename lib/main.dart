@@ -32,6 +32,15 @@ void main() {
   LicenseRegistry.addLicense(() async* {
     final license = await rootBundle.loadString('google_fonts/FiraCode/OFL.txt');
     yield LicenseEntryWithLineBreaks(['google_fonts/FiraCode'], license);
+
+    yield LicenseEntryWithLineBreaks(
+        ['msp430_emulator/editor'],
+        await rootBundle.loadString('extra_licenses/SHARED_MIT')
+    );
+    yield LicenseEntryWithLineBreaks(
+        ['msp430_emulator'],
+        await rootBundle.loadString('LICENSE')
+    );
   });
 
   if (!Flags.langDebug) {
