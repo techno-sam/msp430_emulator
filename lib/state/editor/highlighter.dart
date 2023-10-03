@@ -1,12 +1,30 @@
+/*
+ *     MSP430 emulator and assembler
+ *     Copyright (C) 2023  Sam Wagenaar
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import 'package:flutter/material.dart';
 import 'package:flutter_highlighter/themes/atom-one-dark-reasonable.dart';
 import 'package:highlight/highlight.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'document.dart';
 
 const double fontSize = 18;
 const double gutterFontSize = 16;
-const String fontFamily = "Ubuntu Mono";
 const Color selection = Color(0xff3f6690);//const Color(0xff44475a);
 Map<String, TextStyle> get editorTheme {
   Map<String, TextStyle> newTheme = Map.of(atomOneDarkReasonableTheme);
@@ -227,8 +245,9 @@ List<LineDecoration> _decorate(String text, int line, Document document) {
 
 class Highlighter {
   Pair<List<InlineSpan>, Color?> run(String text, int line, Document document) {
-    TextStyle defaultStyle = TextStyle(
-        fontFamily: fontFamily, fontSize: fontSize, color: editorTheme['root']?.color);
+    TextStyle defaultStyle = GoogleFonts.firaCode(
+        fontSize: fontSize, color: editorTheme['root']?.color
+    );
     List<InlineSpan> res = [];
     List<LineDecoration> decors = _decorate(text, line, document);
 

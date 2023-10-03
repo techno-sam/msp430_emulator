@@ -1,7 +1,26 @@
+/*
+ *     MSP430 emulator and assembler
+ *     Copyright (C) 2023  Sam Wagenaar
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:msp430_emulator/screens/execute_screen.dart';
+import 'package:msp430_emulator/screens/homescreen.dart';
 import 'package:msp430_emulator/screens/tabbed_editor_screen.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
 
@@ -65,7 +84,7 @@ class _BottomTabsState extends State<BottomTabs> with SingleTickerProviderStateM
 
   late final List<Widget> _widgetOptions = <Widget>[
     TabbedEditorScreen(key: _editKey),//CodeEditScreen(key: _editKey, path: "/home/sam/AppDev/msp430_emulator/test/widget_test.dart"),//TabbedEditorScreen(key: PageStorageKey("tabbedEditor")),//key: _screenKey1, path: '/home/sam/AppDev/msp430_emulator/test/widget_test.dart'),
-    const TestScreen2(),
+    const HomeScreen(),
     const ExecuteScreen(),
   ];
 

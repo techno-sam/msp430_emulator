@@ -1,5 +1,24 @@
+/*
+ *     MSP430 emulator and assembler
+ *     Copyright (C) 2023  Sam Wagenaar
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:highlight/highlight.dart';
 import 'package:msp430_emulator/ffi_bindings/shmem.dart';
 import 'package:msp430_emulator/state/shmem.dart';
@@ -10,6 +29,11 @@ import 'navigation/bottom_tabs.dart';
 import 'utils/flags.dart';
 
 void main() {
+  LicenseRegistry.addLicense(() async* {
+    final license = await rootBundle.loadString('google_fonts/FiraCode/OFL.txt');
+    yield LicenseEntryWithLineBreaks(['google_fonts/FiraCode'], license);
+  });
+
   if (!Flags.langDebug) {
     highlight.registerLanguage('msp430', msp430Lang());
   }

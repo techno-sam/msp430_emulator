@@ -1,4 +1,23 @@
+/*
+ *     MSP430 emulator and assembler
+ *     Copyright (C) 2023  Sam Wagenaar
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:msp430_emulator/state/editor/highlighter.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
 import 'package:provider/provider.dart';
@@ -97,9 +116,9 @@ class _MemoryViewLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final RegistersProvider reg = Provider.of<RegistersProvider>(context);
     final MemoryProvider mem = Provider.of<MemoryProvider>(context);
-    const TextStyle textStyle = TextStyle(fontFamily: fontFamily, fontSize: 14, color: ColorExtension.selectedGreen);
-    const TextStyle textStyle2 = TextStyle(fontFamily: fontFamily, fontSize: 14, color: ColorExtension.unselectedGreen);
-    const TextStyle pcStyle = TextStyle(fontFamily: fontFamily, fontSize: 14, color: Colors.cyanAccent);
+    TextStyle textStyle = GoogleFonts.firaCode(fontSize: 14, color: ColorExtension.selectedGreen);
+    TextStyle textStyle2 = GoogleFonts.firaCode(fontSize: 14, color: ColorExtension.unselectedGreen);
+    TextStyle pcStyle = GoogleFonts.firaCode(fontSize: 14, color: Colors.cyanAccent);
 
     int pc = reg.getValue(0);
     int sp = reg.getValue(1);
