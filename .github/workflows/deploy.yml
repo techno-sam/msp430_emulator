@@ -74,12 +74,12 @@ jobs:
       - name: Copy Rust Build
         shell: bash
         run: |
-          echo "directory: target"
-          ls target
-          echo "directory: target/${{ matrix.target }}/release"
-          ls "target/${{ matrix.target }}/release"
-          echo "directory: target/release"
-          ls target/release
+          # echo "directory: target"
+          # ls target
+          # echo "directory: target/${{ matrix.target }}/release"
+          # ls "target/${{ matrix.target }}/release"
+          # echo "directory: target/release"
+          # ls target/release
           echo "Copying..."
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             cp "target/${{ matrix.target }}/release/libshmem_ffi.so" "target/release/"
@@ -88,8 +88,8 @@ jobs:
           elif [ "${{ matrix.os }}" = "macos-latest" ]; then
             cp "target/${{ matrix.target }}/release/libshmem_ffi.dylib" "target/release/"
           fi
-          echo "directory: target/release (after copy)"
-          ls target/release
+          # echo "directory: target/release (after copy)"
+          # ls target/release
       - name: Build Flutter/Dart
         shell: bash
         run: flutter build ${{ matrix.flutter-target }} --release -v
