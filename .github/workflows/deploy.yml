@@ -100,8 +100,8 @@ jobs:
           binary_name="msp430_emulator"
           
           dirname="$binary_name-${{ env.VERSION }}-${{ matrix.target }}"
-          mkdir "$dirname"
-          mv "build/${{ matrix.flutter-target }}/x64/release/bundle/*" "$dirname"
+          # mkdir "$dirname"
+          mv "build/${{ matrix.flutter-target }}/x64/release/bundle" "$dirname"
           
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             7z a "$dirname.zip" "$dirname"
