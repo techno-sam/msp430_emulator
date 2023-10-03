@@ -76,7 +76,12 @@ jobs:
         run: |
           echo "directory: target"
           ls target
+          echo "directory: target/${{ matrix.target }}"
+          ls "target/${{ matrix.target }}"
           echo "directory: target/release"
+          ls target/release
+          cp "target/${{ matrix.target }}/release/*" "target/release/"
+          echo "directory: target/release (after copy)"
           ls target/release
       - name: Build Flutter/Dart
         shell: bash
