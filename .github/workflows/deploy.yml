@@ -71,6 +71,13 @@ jobs:
           use-cross: ${{ matrix.do_cross }}
           command: build
           args: --verbose --release --target ${{ matrix.target }}
+      - name: Debug Rust Build
+        shell: bash
+        run: |
+          echo "directory: target"
+          ls target
+          echo "directory: target/release"
+          ls target/release
       - name: Build Flutter/Dart
         shell: bash
         run: flutter build ${{ matrix.flutter-target }} --release -v
