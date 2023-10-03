@@ -71,16 +71,23 @@ jobs:
           use-cross: ${{ matrix.do_cross }}
           command: build
           args: --verbose --release --target ${{ matrix.target }}
-      - name: Debug Rust Build
+      - name: Copy Rust Build
         shell: bash
         run: |
           echo "directory: target"
           ls target
-          echo "directory: target/${{ matrix.target }}"
-          ls "target/${{ matrix.target }}"
+          echo "directory: target/${{ matrix.target }}/release"
+          ls "target/${{ matrix.target }}/release"
           echo "directory: target/release"
           ls target/release
-          cp "target/${{ matrix.target }}/release/*" "target/release/"
+          echo "Copying..."
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            cp "target/${{ matrix.target }}/release/libshmem_ffi.so" "target/release/"
+          elif [ "${{ matrix.os }}" = "windows-latest" ];
+            cp "target/${{ matrix.target }}/release/shmem_ffi.dll" "target/release/"
+          elif [ "${{ matrix.os }}" = "macos-latest" ];
+            cp "target/${{ matrix.target }}/release/libshmem_ffi.dylib" "target/release/"
+          fi
           echo "directory: target/release (after copy)"
           ls target/release
       - name: Build Flutter/Dart
