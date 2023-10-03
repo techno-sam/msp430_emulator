@@ -65,7 +65,7 @@ jobs:
           args: --verbose --release --target ${{ matrix.target }}
       - name: Build Flutter/Dart
         shell: bash
-        run: flutter ${{ matrix.flutter-target }} build --release -v
+        run: flutter build ${{ matrix.flutter-target }} --release -v
       - name: Build archive
         shell: bash
         run: |
