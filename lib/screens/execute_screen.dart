@@ -41,9 +41,9 @@ class ExecuteScreen extends StatelessWidget {
         children: [
           ExecuteToolbar(shmem: shmem),
           const RegisterList(compact: true),
-          Expanded(
+          const Expanded(
             child: Row(
-              children: const [
+              children: [
                 MemoryView(),
                 VerticalDivider(color: ColorExtension.unselectedGreen, width: 8,),
                 TextBufferView(),
@@ -70,6 +70,7 @@ class ExecuteToolbar extends StatelessWidget {
     int endFlex = 50;
     int intraGroupFlex = 5;
     int interGroupFlex = 40;
+    const buttonColor = Color(0xff69103a);
     return Container(
       //color: ColorExtension.deepSlateBlue.withBrightness(0.5),
       margin: const EdgeInsets.all(4.0),
@@ -112,7 +113,7 @@ class ExecuteToolbar extends StatelessWidget {
             icon: const Icon(Icons.file_open_outlined),
             color: ColorExtension.selectedGreen,
             style: IconButton.styleFrom(
-              backgroundColor: ColorExtension.selectedGreen.invert.withBrightness(0.75)
+              backgroundColor: buttonColor
             ),
           ),
           Spacer(flex: interGroupFlex),
@@ -122,7 +123,7 @@ class ExecuteToolbar extends StatelessWidget {
             icon: const Icon(Icons.play_circle_outline),
             color: ColorExtension.selectedGreen,
             style: IconButton.styleFrom(
-                backgroundColor: ColorExtension.selectedGreen.invert.withBrightness(0.75)
+                backgroundColor: buttonColor
             ),
           ),
           Spacer(flex: intraGroupFlex),
@@ -132,7 +133,7 @@ class ExecuteToolbar extends StatelessWidget {
             icon: const Icon(Icons.stop_circle_outlined),
             color: ColorExtension.selectedGreen,
             style: IconButton.styleFrom(
-                backgroundColor: ColorExtension.selectedGreen.invert.withBrightness(0.75)
+                backgroundColor: buttonColor
             ),
           ),
           Spacer(flex: interGroupFlex),
@@ -146,7 +147,7 @@ class ExecuteToolbar extends StatelessWidget {
                   },
                   //color: ColorExtension.selectedGreen,
                   style: TextButton.styleFrom(
-                    backgroundColor: ColorExtension.selectedGreen.invert.withBrightness(0.75),
+                    backgroundColor: buttonColor,
                     minimumSize: const Size(48, 48)
                   ),
                   child: Text("$i", style: const TextStyle(color: ColorExtension.selectedGreen)),
@@ -180,7 +181,7 @@ class ReloadButton extends StatelessWidget {
           : Colors.red,
       style: IconButton.styleFrom(
           backgroundColor: isReal
-              ? ColorExtension.selectedGreen.invert.withBrightness(0.75)
+              ? const Color(0xff69103a)
               : ColorExtension.selectedGreen.invert.withBrightness(0.2)
       ),
     );

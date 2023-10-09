@@ -71,7 +71,7 @@ class _MemoryViewState extends State<MemoryView> {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        color: ColorExtension.deepSlateBlue,
+        color: ColorExtension.deepSlateBlue.withBrightness(0.5),
         child: ListView.builder(
           key: const PageStorageKey<String>("scroller_for_mem_view"),//_listKey,
           padding: const EdgeInsets.all(8),

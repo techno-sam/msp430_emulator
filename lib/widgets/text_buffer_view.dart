@@ -55,7 +55,7 @@ class TextBufferView extends StatelessWidget {
 
     return Expanded(
       child: Container(
-        color: ColorExtension.deepSlateBlue.withOpacity(0.8),
+        color: ColorExtension.deepSlateBlue.withOpacity(0.8).withBrightness(0.7),
         padding: const EdgeInsets.all(8),
         child: Column(
           children: lines
