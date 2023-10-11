@@ -95,18 +95,37 @@ class _Editor extends State<Editor> {
           alignment: AlignmentDirectional.bottomEnd,
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: IconButton(
-              onPressed: () {
-                doc.assemble(ScaffoldMessenger.of(context));
-              },
-              icon: const CompileStatusIcon(
-                icon: CupertinoIcons.hammer,
-              ),
-              style: IconButton.styleFrom(
-                backgroundColor: ColorExtension.deepSlateBlue,
-                highlightColor: ColorExtension.blackGreen.withOpacity(0.5)
-              ),
-              tooltip: "Assemble",
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    doc.toggleTutor();
+                  },
+                  icon: const TutorStatusIcon(
+                    icon: CupertinoIcons.hammer,
+                  ),
+                  style: IconButton.styleFrom(
+                      backgroundColor: ColorExtension.deepSlateBlue,
+                      highlightColor: ColorExtension.blackGreen.withOpacity(0.5)
+                  ),
+                  tooltip: "Toggle Tutor",
+                ),
+                const SizedBox(width: 16.0),
+                IconButton(
+                  onPressed: () {
+                    doc.assemble(ScaffoldMessenger.of(context));
+                  },
+                  icon: const CompileStatusIcon(
+                    icon: CupertinoIcons.hammer,
+                  ),
+                  style: IconButton.styleFrom(
+                    backgroundColor: ColorExtension.deepSlateBlue,
+                    highlightColor: ColorExtension.blackGreen.withOpacity(0.5)
+                  ),
+                  tooltip: "Assemble",
+                ),
+              ],
             ),
           ),
         )
@@ -130,5 +149,36 @@ class CompileStatusIcon extends StatelessWidget {
       icon,
       color: doc.assemblyStatus.color,
     );
+  }
+}
+
+class TutorStatusIcon extends StatelessWidget {
+  const TutorStatusIcon({
+    super.key,
+    required this.icon,
+  });
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    ev.DocumentProvider doc = Provider.of<ev.DocumentProvider>(context);
+    final questionIcon = Icon(
+      Icons.help_outline,
+      color: doc.tutorEnabled ? ColorExtension.selectedGreen : Colors.red,
+    );
+    if (doc.tutorEnabled) {
+      return questionIcon;
+    } else {
+      return Stack(
+        children: [
+          const Icon(
+            Icons.not_interested_outlined,
+            color: Colors.red,
+          ),
+          questionIcon
+        ],
+      );
+    }
   }
 }

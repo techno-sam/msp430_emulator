@@ -23,6 +23,8 @@ import 'package:msp430_emulator/state/shmem.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
 import 'package:provider/provider.dart';
 
+import '../language_def/tutor.dart' show namedRegisters;
+
 class RegisterList extends StatefulWidget {
   const RegisterList({super.key, required this.compact});
 
@@ -37,12 +39,6 @@ class _RegisterListState extends State<RegisterList> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     RegistersProvider trackedRegisterProvider = Provider.of<RegistersProvider>(context);
-    Map<int, String> namedRegisters = {
-      0: "pc",
-      1: "sp",
-      2: "sr",
-      3: "cg"
-    };
     TextStyle textStyle = GoogleFonts.firaCode(
       textStyle: theme.textTheme.labelMedium,
       fontSize: widget.compact ? 14 : fontSize,

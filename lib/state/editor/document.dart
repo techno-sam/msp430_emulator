@@ -146,10 +146,15 @@ class Document {
     _lines = <String>[''];
     docPath = path;
     File f = File(docPath);
-    await f.openRead().map(utf8.decode).transform(const LineSplitter()).forEach((l) {
-      insertText(l);
-      insertNewLine();
-    });
+    final bool fileExists = await f.exists();
+    if (fileExists) {
+      await f.openRead().map(utf8.decode)
+          .transform(const LineSplitter())
+          .forEach((l) {
+        insertText(l);
+        insertNewLine();
+      });
+    }
     cursor = oldCursor;
     if (_lines.length > 1) {
       _lines.removeAt(_lines.length - 1);
@@ -158,7 +163,7 @@ class Document {
     _oldLines = null;
     //moveCursorToStartOfDocument();
     _unsavedChanges = false;
-    return true;
+    return fileExists;
   }
 
   Future<String> saveFile({String? path}) async {

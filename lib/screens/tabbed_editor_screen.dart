@@ -60,7 +60,7 @@ class _TabbedEditorScreenState extends State<TabbedEditorScreen> {
   Future<void> _openFile() async {
     Directory initialDirectory = Directory.fromUri(
         (await path_provider.getApplicationDocumentsDirectory())
-            .uri.resolve("AssemblyFiles")
+            .uri.resolve("AssemblyFiles/")
     );
     await initialDirectory.create(recursive: true);
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -78,6 +78,33 @@ class _TabbedEditorScreenState extends State<TabbedEditorScreen> {
           _openFiles.add(path);
         }
         _selectedFile = path;
+      });
+    }
+  }
+
+  Future<void> _newFile() async {
+    Directory initialDirectory = Directory.fromUri(
+        (await path_provider.getApplicationDocumentsDirectory())
+            .uri.resolve("AssemblyFiles/")
+    );
+    await initialDirectory.create(recursive: true);
+    String? result = await FilePicker.platform.saveFile(
+        initialDirectory: initialDirectory.path,
+        type: FileType.custom,
+        allowedExtensions: [
+          "asm"
+        ]
+    );
+
+    if (result != null) {
+      if (!result.endsWith(".asm")) {
+        result += ".asm";
+      }
+      setState(() {
+        if (!_openFiles.contains(result)) {
+          _openFiles.add(result!);
+        }
+        _selectedFile = result;
       });
     }
   }
@@ -111,19 +138,39 @@ class _TabbedEditorScreenState extends State<TabbedEditorScreen> {
               style: theme.textTheme.headlineMedium?.copyWith(color: const Color(0xFF6DFD8C))
             ),
             const SizedBox(height: 16.0),
-            ElevatedButton.icon(
-              onPressed: _openFile,
-              icon: const Icon(
-                Icons.file_open_outlined,
-                color: ColorExtension.selectedGreen
-              ),
-              label: Text(
-                "Open File",
-                style: theme.textTheme.labelLarge?.copyWith(color: ColorExtension.selectedGreen),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ColorExtension.deepSlateBlue
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _openFile,
+                  icon: const Icon(
+                    Icons.file_open_outlined,
+                    color: ColorExtension.selectedGreen
+                  ),
+                  label: Text(
+                    "Open File",
+                    style: theme.textTheme.labelLarge?.copyWith(color: ColorExtension.selectedGreen),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ColorExtension.deepSlateBlue
+                  ),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton.icon(
+                  onPressed: _newFile,
+                  icon: const Icon(
+                      Icons.create_outlined,
+                      color: ColorExtension.selectedGreen
+                  ),
+                  label: Text(
+                    "New File",
+                    style: theme.textTheme.labelLarge?.copyWith(color: ColorExtension.selectedGreen),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: ColorExtension.deepSlateBlue
+                  ),
+                ),
+              ],
             )
           ],
         ),

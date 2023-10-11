@@ -169,6 +169,31 @@ Mode msp430Lang() {
         ]
       ),
       Mode(
+          className: "operator",
+          variants: [
+            Mode(begin: r"[-+]?0x[0-9a-f]{1,4}\("),
+            Mode(begin: r"[-+]?\d+\(")
+          ],
+          contains: [
+            Mode(
+                className: "built_in",
+                variants: [
+                  Mode(begin: "r1[0-5](?![0-9])"),
+                  Mode(begin: "r[0-9](?![0-9])"),
+                  Mode(begin: "pc|sp|sr|cg")
+                ],
+                endsWithParent: true,
+                contains: [
+                  Mode(
+                      className: "operator",
+                      begin: r"\)",
+                      endsParent: true
+                  )
+                ]
+            ),
+          ]
+      ),
+      Mode(
         className: "operator",
         begin: "#|&",
         contains: [

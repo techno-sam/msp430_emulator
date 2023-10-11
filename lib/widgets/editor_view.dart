@@ -35,13 +35,15 @@
  */
 
 import 'dart:async';
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:msp430_emulator/language_def/tutor.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
 import 'package:msp430_emulator/utils/flags.dart';
 import 'package:provider/provider.dart';
-import 'package:msp430_dart/msp430_dart.dart' as msp430;
+import 'package:msp430_dart/msp430_dart_assembler.dart' as msp430;
 
 import '../state/editor/highlighter.dart';
 import '../state/editor/document.dart';
@@ -94,6 +96,13 @@ class DocumentProvider extends ChangeNotifier {
   final Map<String, void Function(BuildContext context, PageStorageBucket bucket)> _onRestore = {};
   final Map<int, String> assemblyErrors = {};
 
+  bool _tutorEnabled = false;
+  bool get tutorEnabled => _tutorEnabled;
+  void toggleTutor() {
+    _tutorEnabled = !_tutorEnabled;
+    touch();
+  }
+
   AssemblyStatus get assemblyStatus {
     if (doc.unsavedChanges) {
       _assemblyStatus = AssemblyStatus.unknown;
@@ -112,7 +121,13 @@ class DocumentProvider extends ChangeNotifier {
         }
       }
     }
-    Uint8List? assembled = msp430.parse(contents, errorConsumer: handleErrors, silent: true);
+    Uint8List? assembled;
+    try {
+      assembled = msp430.parse(contents, errorConsumer: handleErrors, silent: true);
+    } catch (ignored) {
+      assembled = null;
+    }
+
     _assemblyStatus = AssemblyStatus.fromSuccess(assembled != null);
 
     if (assembled != null) {
@@ -177,6 +192,8 @@ class DocumentProvider extends ChangeNotifier {
   }*/
 }
 
+const tutorAlignColumn = 20;
+
 class ViewLine extends StatelessWidget {
   const ViewLine({this.lineNumber = 0, this.text = '', super.key});
 
@@ -188,9 +205,11 @@ class ViewLine extends StatelessWidget {
     DocumentProvider doc = Provider.of<DocumentProvider>(context);
     CaretPulse pulse = Provider.of<CaretPulse>(context);
     Highlighter hl = Provider.of<Highlighter>(context);
-    Pair<List<InlineSpan>, Color?> spansAndColor = hl.run(text, lineNumber, doc.doc);
+    Pair<List<InlineSpan>, Color?> spansAndColor = hl.run(
+        text, lineNumber, doc.doc);
     List<InlineSpan> spans = spansAndColor.first;
     List<Widget> carets = [];
+    final bool isActiveLine = doc.doc.cursor.line == lineNumber;
 
     bool lineHasError = doc.assemblyErrors.containsKey(lineNumber);
 
@@ -212,6 +231,112 @@ class ViewLine extends StatelessWidget {
             )
           ]
       ));
+    } else if (doc.tutorEnabled && doc.doc.cursor.line <= lineNumber && lineNumber <= doc.doc.cursor.line+2) {
+      /* Assemble relevant line */
+      int existingChars = 0;
+      for (final span in spans) {
+        if (span is TextSpan) {
+          existingChars += span.getCharCount();
+        }
+      }
+      final line = msp430.Line(doc.doc.cursor.line, doc.doc.lines[doc.doc.cursor.line]);
+      final List<msp430.Pair<msp430.Line, String>> errors = [];
+
+      bool failed = false;
+      List<msp430.Token<dynamic>> tokens;
+      try {
+        tokens = msp430.parseTokens([line], errors);
+      } catch (e) {
+        tokens = [];
+        failed = true;
+      }
+      List<msp430.Pair<int, String>> instrErrors = [];
+      msp430.Instruction? instruction;
+      if (!failed) {
+        try {
+          final instructions = msp430.parseInstructions(tokens, instrErrors);
+          if (instructions.isNotEmpty) {
+            instruction = instructions[0];
+          }
+        } catch (e) {
+          failed = true;
+        }
+      }
+
+      if (errors.isEmpty && instrErrors.isEmpty && !failed) {
+        String? mnemonic;
+
+        final stream = msp430.TokenStream(tokens);
+        while (stream.isNotEmpty) {
+          final token = stream.pop();
+          if (token.token == msp430.Tokens.lineStart) continue;
+          if (token.token == msp430.Tokens.mnemonic) {
+            mnemonic = token.value;
+          }
+          break;
+        }
+
+        String? msg;
+
+        if (mnemonic != null && isActiveLine) {
+          msg = mnemonicTutors[mnemonic];
+        } else if (lineNumber == doc.doc.cursor.line + 1 && instruction != null) {
+          final msp430.Operand? src;
+          final bool bw;
+          if (instruction is msp430.SingleOperandInstruction) {
+            src = instruction.op1;
+            bw = instruction.bw;
+          } else if (instruction is msp430.DoubleOperandInstruction) {
+            src = instruction.src;
+            bw = instruction.bw;
+          } else {
+            src = null;
+            bw = false;
+          }
+
+          if (src != null) {
+            final description = describeOperand(src, bw) ?? "unknown description";
+            msg = "^ src: $description";
+          }
+        } else if (lineNumber == doc.doc.cursor.line + 2 && instruction != null) {
+          final msp430.Operand? dst;
+          final bool bw;
+          if (instruction is msp430.DoubleOperandInstruction) {
+            dst = instruction.dst;
+            bw = instruction.bw;
+          } else {
+            dst = null;
+            bw = false;
+          }
+
+          if (dst != null) {
+            final description = describeOperand(dst, bw)  ?? "unknown description";
+            msg = "^ dst: $description";
+          }
+        }
+
+        if (msg != null) {
+          final int paddingAmt = max(tutorAlignColumn - existingChars, 0);
+          spans.insert(spans.length - 1, IgnorableTextSpan(
+              ignoreForCursor: true,
+              children: [
+                const WidgetSpan(child: SizedBox(width: 40)),
+                TextSpan(
+                  text: "${" " * paddingAmt}; $msg",
+                  style: GoogleFonts.firaCode(
+                    textStyle: editorTheme['comment']?.copyWith(
+                        color: Colors.lightBlue),
+                    fontSize: fontSize,
+                    /*decoration: TextDecoration.underline,
+                  decorationThickness: 4,
+                  decorationStyle: TextDecorationStyle.dashed,
+                  decorationColor: Colors.lightBlue,*/
+                  ),
+                )
+              ]
+          ));
+        }
+      }
     }
 
     final gutterStyle = GoogleFonts.firaCode(
@@ -251,7 +376,7 @@ class ViewLine extends StatelessWidget {
 
     Offset caretOffset = textPainter?.getOffsetForCaret(TextPosition(offset: doc.doc.cursor.column), Rect.zero) ?? Offset.zero;
 
-    if (doc.doc.cursor.line == lineNumber) {
+    if (isActiveLine) {
       double w = 2;
       double h = extents.height;
       carets.add(Positioned(
@@ -266,7 +391,7 @@ class ViewLine extends StatelessWidget {
     }
 
     return Stack(children: [
-      if (lineNumber == doc.doc.cursor.line)
+      if (isActiveLine)
         Container(
           color: selection.withOpacity(0.25),
           child: const Center(
@@ -329,6 +454,7 @@ class _ViewState extends State<View> {
 
   @override
   void initState() {
+    msp430.initInstructionInfo();
     scroller = ScrollController();
     super.initState();
   }

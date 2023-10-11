@@ -70,3 +70,15 @@ Completer<T> wrapInCompleter<T>(Future<T> future) {
   future.then(completer.complete).catchError(completer.completeError);
   return completer;
 }
+
+extension CharCounter on TextSpan {
+  int getCharCount() {
+    int count = text?.length ?? 0;
+    for (final child in children ?? []) {
+      if (child is TextSpan) {
+        count += child.getCharCount();
+      }
+    }
+    return count;
+  }
+}
