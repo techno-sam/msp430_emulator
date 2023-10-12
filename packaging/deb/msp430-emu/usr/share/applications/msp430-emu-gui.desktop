@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=msp430-emu-gui
+Icon=/usr/share/icons/hicolor/scalable/apps/msp430-emu.svg
+Exec=msp430-emu-gui %U
+Categories=Programming;Productivity;
+Keywords=msp;assembly;assembler;emulator
+Terminal=false
+#Hidden=true
+NoDisplay=true
+X-MultipleArgs=false
+Name[en_US]=msp430-emu-gui.desktop (for icon only)

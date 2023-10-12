@@ -1,0 +1,7 @@
+Package: msp430-emu
+Version: 1.0.1
+Architecture: amd64
+Essential: no
+Priority: optional
+Maintainer: techno-sam
+Description: An emulator and assembler for the MSP430 chip

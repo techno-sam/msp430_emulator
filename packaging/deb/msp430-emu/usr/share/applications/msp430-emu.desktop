@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=msp430_emulator
+Icon=/usr/share/icons/hicolor/scalable/apps/msp430-emu.svg
+Exec=env GDK_GL=gles /usr/bin/msp430 %U
+Categories=Programming;Productivity;
+Keywords=msp;assembly;assembler;emulator
+Terminal=true
+Name[en_US]=MSP430 Emulator & Assembler

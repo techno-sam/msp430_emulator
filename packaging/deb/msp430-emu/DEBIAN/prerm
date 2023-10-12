@@ -1,0 +1,10 @@
+#!/bin/bash
+
+echo "Maybe removing msp430 symlinks"
+if [ -e /usr/bin/msp430-emu-gui ]; then
+    echo "Yes, removing"
+    rm /usr/bin/msp430-emu-gui
+    rm /usr/bin/msp430-emu
+    rm /usr/bin/msp430
+fi
+echo "Done"

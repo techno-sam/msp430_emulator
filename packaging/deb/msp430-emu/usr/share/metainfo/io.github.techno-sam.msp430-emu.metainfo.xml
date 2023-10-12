@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.techno-sam.msp43-emu</id>
+  
+  <name>MSP 430 Emulator</name>
+  <summary>An emulator and assembler for the MSP430 chip</summary>
+  
+  <metadata_license>CC-BY-4.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  
+  <description>
+    <p>
+      Todo
+    </p>
+  </description>
+  
+  <launchable type="desktop-id">io.github.techno-sam.msp430-emu.desktop</launchable>
+  <screenshots>
+    <!--<screenshot type="default">
+      <image>https://github.com/AppFlowy-IO/appflowy/raw/main/doc/imgs/welcome.png</image>
+    </screenshot>-->
+  </screenshots>
+</component>

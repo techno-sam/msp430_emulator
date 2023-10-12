@@ -1,0 +1,9 @@
+#!/bin/bash
+if [ -e /usr/bin/msp430-emu-gui ]; then
+    echo "Symlink already exists, skipping."
+else
+    echo "Creating Symlink in /usr/bin/msp430-emu"
+    ln -s /usr/lib/msp430-emu/msp430_emulator /usr/bin/msp430-emu-gui
+    ln -s /usr/lib/msp430-emu/msp430_rust /usr/bin/msp430-emu
+    ln -s /usr/lib/msp430-emu/launch_both.sh /usr/bin/msp430
+fi
