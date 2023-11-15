@@ -108,6 +108,7 @@ Map<String, String> get mnemonicTutors {
     "sxt": "Sign extend (converts s8 -> s16 by Bit 7 -> Bit 8 ... Bit 15)",
     "tst": "dst + 0xffff + 1 -> N and Z flags",
     "xor": "src .XOR. dst -> dst",
+    "hcf": "Halt and Catch Fire (jmp 0)",
   };
   final aliases = [
     "jc jhs",

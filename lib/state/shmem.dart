@@ -28,7 +28,9 @@ enum _ShmemCommand {
   stop,
   run,
   step,
-  loadFile
+  loadFile,
+  setMem,
+  interrupt,
 }
 
 // ignore: constant_identifier_names
@@ -51,6 +53,22 @@ class ShmemProvider extends ChangeNotifier {
     } else if (kDebugMode) {
       print("Existing command: $existing");
     }
+  }
+
+  void interrupt(int vector) {
+    _cmd(_ShmemCommand.interrupt, () {
+      shmem.write(CMD+1, (vector & 0xff00) >> 8);
+      shmem.write(CMD+2, vector & 0x00ff);
+    });
+  }
+
+  void setMem(int addr, int val) {
+    _cmd(_ShmemCommand.setMem, () {
+      shmem.write(CMD+1, (addr & 0xff00) >> 8);
+      shmem.write(CMD+2, addr & 0x00ff);
+      shmem.write(CMD+3, (val & 0xff00) >> 8);
+      shmem.write(CMD+4, val & 0x00ff);
+    });
   }
 
   void loadProgram(String s) {

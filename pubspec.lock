@@ -211,12 +211,10 @@ packages:
   msp430_dart:
     dependency: "direct main"
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "298af7f1a3a67b78fe0457f7b6e49799adc15afb"
-      url: "https://github.com/techno-sam/msp430_dart.git"
-    source: git
-    version: "0.1.8"
+      path: "/home/sam/0_MicrocontrollerSimProject/msp430_dart/"
+      relative: false
+    source: path
+    version: "0.2.1"
   nested:
     dependency: transitive
     description:

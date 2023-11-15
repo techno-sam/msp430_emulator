@@ -65,7 +65,7 @@ Mode msp430Lang() {
       Mode(
         className: "formula",
         begin:
-          r"^\s*\b(rrc|swpb|rra|sxt|push|call|reti|jne|jnz|jeq|jz|jnc|jlo|jc|jhs|jn|jge|jl|jmp|mov|add|addc|subc|sub|cmp|dadd|bit|bic|bis|xor|and|adc|br|clr|clrc|clrn|clrz|dadc|dec|decd|dint|enit|inc|incd|inv|nop|pop|ret|rla|rlc|sbc|setc|setn|setz|tst)\b"
+          r"^\s*\b(rrc|swpb|rra|sxt|push|call|reti|jne|jnz|jeq|jz|jnc|jlo|jc|jhs|jn|jge|jl|jmp|mov|add|addc|subc|sub|cmp|dadd|bit|bic|bis|xor|and|adc|br|clr|clrc|clrn|clrz|dadc|dec|decd|dint|enit|inc|incd|inv|nop|pop|ret|rla|rlc|sbc|setc|setn|setz|tst|hcf)\b"
       ),
       Mode(
           className: "comment",
@@ -145,6 +145,27 @@ Mode msp430Lang() {
             endsParent: true,
           )
         ]
+      ),
+      Mode(
+          className: "meta",
+          begin: r"\.interrupt ",
+          contains: [
+            Mode(
+                className: "pattern-match",
+                variants: [
+                  Mode(begin: r"0x[0-9a-f]{1,4}"),
+                  Mode(begin: r"\d+")
+                ],
+                endsWithParent: true,
+                contains: [
+                  Mode(
+                      className: "symbol",
+                      begin: " ([A-z\$_][A-z0-9\$_]*)",
+                      endsParent: true
+                  )
+                ]
+            )
+          ]
       ),
       Mode(
         className: "operator",
