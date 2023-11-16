@@ -106,9 +106,9 @@ jobs:
           dirname="$binary_name-${{ env.VERSION }}-${{ matrix.target }}"
           # mkdir "$dirname"
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            mv packaging/deb/msp430-emu/usr/lib/msp430-emu packaging/deb/msp430-emu/usr/lib/msp430-old
+            mv packaging/deb/msp430-emu/usr/lib/msp430-emu packaging/deb/msp430-emu/usr/lib/msp430-emu-old
             cp -r "build/${{ matrix.flutter-target }}/x64/release/bundle" packaging/deb/msp430-emu/usr/lib/msp430-emu
-            cp packaging/deb/msp430-emu/usr/lib/msp430-old/launch_both.sh packaging/deb/msp430-emu/usr/lib/msp430-emu/
+            cp packaging/deb/msp430-emu/usr/lib/msp430-emu-old/launch_both.sh packaging/deb/msp430-emu/usr/lib/msp430-emu/
             rm -rf packaging/deb/msp430-emu/usr/lib/msp430-emu-old
             mv "build/${{ matrix.flutter-target }}/x64/release/bundle" "$dirname"
             echo "Generating deb"
