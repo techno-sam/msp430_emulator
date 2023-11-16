@@ -83,6 +83,8 @@ jobs:
           echo "Copying..."
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             cp "target/${{ matrix.target }}/release/libshmem_ffi.so" "target/release/"
+            echo "Fetching and setting up rust emulator binary"
+            cd buildscripts && dart download_rust_emu.dart && cd ..
           elif [ "${{ matrix.os }}" = "windows-latest" ]; then
             cp "target/${{ matrix.target }}/release/shmem_ffi.dll" "target/release/"
           elif [ "${{ matrix.os }}" = "macos-latest" ]; then
@@ -103,6 +105,12 @@ jobs:
           # mkdir "$dirname"
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             mv "build/${{ matrix.flutter-target }}/x64/release/bundle" "$dirname"
+            echo "Copying files for deb"
+            cp -rv build/${{ matrix.flutter-target }}/x64/release/bundle/* packaging/deb/msp430-emu/usr/lib/msp430-emu/
+            echo "Generating deb"
+            cd packaging/deb/ && dpkg-deb --build msp430-emu && cd ../../ || echo "Failed to cd back"
+            cp -v packaging/deb/msp430-emu.deb ./
+            echo "ADDITIONAL_ASSET=msp430-emu.deb" >> $GITHUB_ENV
           elif [ "${{ matrix.os }}" = "windows-latest" ]; then
             mv "build/${{ matrix.flutter-target }}/runner/Release" "$dirname"
           else
@@ -121,3 +129,4 @@ jobs:
         with:
           files: |
             ${{ env.ASSET }}
+            ${{ env.ADDITIONAL_ASSET}}

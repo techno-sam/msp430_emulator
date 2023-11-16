@@ -19,6 +19,12 @@
 
 echo "Building Rust..."
 cargo build --release
+echo "Fetching rust emulator"
+dart download_rust_emu.dart
 echo "Building Flutter..."
 flutter build linux --release
+echo "Copying files for deb"
+cp -rv ../build/linux/x64/release/bundle/* ../packaging/deb/msp430-emu/usr/lib/msp430-emu/
+echo "Generating deb"
+cd ../packaging/deb/ && dpkg-deb --build msp430-emu && cd ../../buildscripts || echo "Failed to cd back"
 echo "Done"
