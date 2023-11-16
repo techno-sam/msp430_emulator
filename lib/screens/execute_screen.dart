@@ -55,11 +55,11 @@ class ExecuteScreen extends StatelessWidget {
                       const Divider(color: ColorExtension.unselectedGreen, height: 6,),
                       FoldingContainer(
                         expandedTitle: Text(
-                            "Keypad",
+                            "Keypad (ID written to 0x0002, interrupt vector 0xfffc)",
                             style: GoogleFonts.firaCode(color: ColorExtension.selectedGreen)
                         ),
                         foldedTitle: Text(
-                          "Keypad",
+                          "Keypad (ID written to 0x0002, interrupt vector 0xfffc)",
                           style: GoogleFonts.firaCode(color: ColorExtension.selectedGreen.withBrightness(0.75))
                         ),
                         color: ColorExtension.selectedGreen.withBrightness(7/8),

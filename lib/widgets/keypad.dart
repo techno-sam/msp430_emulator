@@ -16,6 +16,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
@@ -65,20 +66,17 @@ class _KeypadState extends State<Keypad> {
 
   Future<void> _sendPressed(ShmemProvider shmem, int i) async {
     int keyId = Keypad.indexes[i];
-    print("awaiting memory ready");
     await shmem.ready;
-    print("setting memory");
     shmem.setMem(0x0002, keyId);
-    print("interrupting waiting");
     await shmem.ready;
-    print("interrupting");
     shmem.interrupt(0xfffc);
-    print("interrupted");
   }
 
   @override
   Widget build(BuildContext context) {
     final ShmemProvider shmem = Provider.of<ShmemProvider>(context);
+
+    final List<GlobalKey<_KeypadButtonState>> keys = List.generate(16, (index) => GlobalKey<_KeypadButtonState>());
 
     return MouseRegion(
       onEnter: (details) {
@@ -107,10 +105,13 @@ class _KeypadState extends State<Keypad> {
                 case "Arrow Right": char = ">"; break;
                 case "Arrow Left": char = "<"; break;
               }
-              print("lbl: ${event.logicalKey.keyLabel}, char: $char");
+              if (kDebugMode) {
+                print("lbl: ${event.logicalKey.keyLabel}, char: $char");
+              }
               if (char != null && Keypad.keys.contains(char)) {
                 int i = Keypad.keys.indexOf(char);
                 _sendPressed(shmem, i);
+                keys[i].currentState?.keyboardPress();
                 return KeyEventResult.handled;
               }
             }
@@ -132,6 +133,7 @@ class _KeypadState extends State<Keypad> {
                   children: [
                     for (int i = 0; i < 16; i++)
                       KeypadButton(
+                        key: keys[i],
                         text: Keypad.keys[i],
                         onPressed: () async {
                           await _sendPressed(shmem, i);
@@ -148,16 +150,32 @@ class _KeypadState extends State<Keypad> {
   }
 }
 
-class KeypadButton extends StatelessWidget {
-  KeypadButton({super.key, required this.text, required this.onPressed});
+class KeypadButton extends StatefulWidget {
+  const KeypadButton({super.key, required this.text, required this.onPressed});
 
   final String text;
   final VoidCallback onPressed;
 
   @override
+  State<KeypadButton> createState() => _KeypadButtonState();
+}
+
+class _KeypadButtonState extends State<KeypadButton> {
+  bool _keyboardPressed = false;
+
+  void keyboardPress() async {
+    setState(() {
+      _keyboardPressed = true;
+    });
+    await Future.delayed(const Duration(milliseconds: 250));
+    setState(() {
+      _keyboardPressed = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    const buttonColor = Color(0xff165b88); //0xff69103a
-    bool pressed = text == "2";
+    const buttonColor = Color(0xff165b88);
     return SizedBox(
       width: 20,
       height: 20,
@@ -166,17 +184,17 @@ class KeypadButton extends StatelessWidget {
           color: buttonColor,
           padding: const EdgeInsets.all(2),
           child: TextButton(
-            onPressed: onPressed,
+            onPressed: widget.onPressed,
             statesController: MaterialStatesController({
               MaterialState.pressed
             }),
             style: TextButton.styleFrom(
-              backgroundColor: pressed ? buttonColor : const Color(0xff000000),
+              backgroundColor: _keyboardPressed ? buttonColor : const Color(0xff000000),
               minimumSize: const Size(12, 12),
               foregroundColor: buttonColor.withBrightness(1.5),
             ),
             child: Text(
-              text,
+              widget.text,
               style: const TextStyle(color: ColorExtension.selectedGreen)
             ),
           ),

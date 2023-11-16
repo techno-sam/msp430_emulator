@@ -369,7 +369,7 @@ dependencies = [
 
 [[package]]
 name = "shmem_ffi"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "base64",
  "bitflags 2.4.0",
