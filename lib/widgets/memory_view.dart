@@ -18,13 +18,33 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:msp430_emulator/state/editor/highlighter.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
 import 'package:provider/provider.dart';
 
 import '../state/shmem.dart';
 
 const int bytesPerLine = 16;
+
+class AddressScrollRequester {
+  AddressScrollRequester();
+
+  final Map<Object, void Function(int address)> _handlers = {};
+  void request(int address) {
+    for (var handler in _handlers.values) {
+      handler(address);
+    }
+  }
+
+  Object registerHandler(void Function(int address) handler) {
+    Object key = Object();
+    _handlers[key] = handler;
+    return key;
+  }
+
+  void clearHandler(Object key) {
+    _handlers.remove(key);
+  }
+}
 
 class _MemoryLineKey extends ValueKey<int> {
   const _MemoryLineKey(super.value);
@@ -43,7 +63,8 @@ class _TimeoutTracker {
 }
 
 class MemoryView extends StatefulWidget {
-  const MemoryView({super.key});
+  final AddressScrollRequester scrollRequester;
+  const MemoryView({super.key, required this.scrollRequester});
 
   @override
   State<MemoryView> createState() => _MemoryViewState();
@@ -52,19 +73,54 @@ class MemoryView extends StatefulWidget {
 class _MemoryViewState extends State<MemoryView> {
 
   late ScrollController scroller;
+  late Object _scrollRequestHandlerKey;
   final _TimeoutTracker _timeout = _TimeoutTracker();
 
   @override
   void initState() {
     scroller = ScrollController();
     scroller.addListener(() => _timeout.timeout(const Duration(milliseconds: 600)));
+    _scrollRequestHandlerKey = widget.scrollRequester.registerHandler(_scrollToAddress);
     super.initState();
   }
   
   @override
   void dispose() {
     scroller.dispose();
+    widget.scrollRequester.clearHandler(_scrollRequestHandlerKey);
     super.dispose();
+  }
+
+  double? _getLineHeight([Element? element]) {
+    double? height;
+    if (element == null) {
+      context.visitChildElements((element) {
+        height ??= _getLineHeight(element);
+      });
+    }
+    element?.visitChildElements((element) {
+      if (element.widget is _MemoryViewLine) {
+        height ??= element.renderObject?.semanticBounds.height ?? 0;
+      } else {
+        height ??= _getLineHeight(element);
+      }
+    });
+    return height;
+  }
+
+  void _scrollTo(int index) {
+    double? height = _getLineHeight();
+    double target = (height ?? 20) * (index + 0.5);
+    /*scroller.animateTo(
+      target,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut
+    );*/
+    scroller.jumpTo(target);
+  }
+
+  void _scrollToAddress(int address) {
+    _scrollTo((address/16).floor());
   }
 
   @override
@@ -76,7 +132,7 @@ class _MemoryViewState extends State<MemoryView> {
           key: const PageStorageKey<String>("scroller_for_mem_view"),//_listKey,
           padding: const EdgeInsets.all(8),
           controller: scroller,
-          itemCount: (0x10000 / bytesPerLine).round() - 1, // 16 bytes per line
+          itemCount: (0x10000 / bytesPerLine).round(), // 16 bytes per line
           itemBuilder: (BuildContext context, int idx) {
             return _MemoryViewLine(
               key: _MemoryLineKey(idx),

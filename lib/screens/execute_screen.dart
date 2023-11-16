@@ -21,17 +21,21 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
+import 'package:msp430_emulator/widgets/folding_container.dart';
 import 'package:msp430_emulator/widgets/memory_view.dart';
 import 'package:msp430_emulator/widgets/register_list.dart';
 import 'package:provider/provider.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 
 import '../state/shmem.dart';
+import '../widgets/keypad.dart';
 import '../widgets/text_buffer_view.dart';
 
 class ExecuteScreen extends StatelessWidget {
-  const ExecuteScreen({super.key});
+  ExecuteScreen({super.key});
+  final AddressScrollRequester _scrollRequester = AddressScrollRequester();
 
   @override
   Widget build(BuildContext context) {
@@ -40,13 +44,32 @@ class ExecuteScreen extends StatelessWidget {
       child: Column(
         children: [
           ExecuteToolbar(shmem: shmem),
-          const RegisterList(compact: true),
-          const Expanded(
+          RegisterList(compact: true, scrollRequester: _scrollRequester),
+          Expanded(
             child: Row(
               children: [
-                MemoryView(),
-                VerticalDivider(color: ColorExtension.unselectedGreen, width: 8,),
-                TextBufferView(),
+                Expanded(
+                  child: Column(
+                    children: [
+                      MemoryView(scrollRequester: _scrollRequester),
+                      const Divider(color: ColorExtension.unselectedGreen, height: 6,),
+                      FoldingContainer(
+                        expandedTitle: Text(
+                            "Keypad",
+                            style: GoogleFonts.firaCode(color: ColorExtension.selectedGreen)
+                        ),
+                        foldedTitle: Text(
+                          "Keypad",
+                          style: GoogleFonts.firaCode(color: ColorExtension.selectedGreen.withBrightness(0.75))
+                        ),
+                        color: ColorExtension.selectedGreen.withBrightness(7/8),
+                        child: const Keypad()
+                      )
+                    ],
+                  ),
+                ),
+                const VerticalDivider(color: ColorExtension.unselectedGreen, width: 8,),
+                const TextBufferView(),
               ],
             ),
           )
@@ -88,7 +111,7 @@ class ExecuteToolbar extends StatelessWidget {
             onPressed: () async {
               Directory initialDirectory = Directory.fromUri(
                   (await path_provider.getApplicationDocumentsDirectory())
-                      .uri.resolve("AssemblyFiles")
+                      .uri.resolve("AssemblyFiles/")
               );
               await initialDirectory.create(recursive: true);
               FilePickerResult? result = await FilePicker.platform.pickFiles(

@@ -21,14 +21,20 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:msp430_emulator/state/editor/highlighter.dart';
 import 'package:msp430_emulator/state/shmem.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
+import 'package:msp430_emulator/widgets/memory_view.dart';
 import 'package:provider/provider.dart';
 
 import '../language_def/tutor.dart' show namedRegisters;
 
 class RegisterList extends StatefulWidget {
-  const RegisterList({super.key, required this.compact});
+  const RegisterList({
+    super.key,
+    required this.compact,
+    required this.scrollRequester
+  });
 
   final bool compact;
+  final AddressScrollRequester scrollRequester;
 
   @override
   State<RegisterList> createState() => _RegisterListState();
@@ -38,7 +44,7 @@ class _RegisterListState extends State<RegisterList> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    RegistersProvider trackedRegisterProvider = Provider.of<RegistersProvider>(context);
+    RegistersProvider trackedRegProv = Provider.of<RegistersProvider>(context);
     TextStyle textStyle = GoogleFonts.firaCode(
       textStyle: theme.textTheme.labelMedium,
       fontSize: widget.compact ? 14 : fontSize,
@@ -46,10 +52,10 @@ class _RegisterListState extends State<RegisterList> {
     );
     String flagString = "";
     for (Pair<String, bool> entry in [
-      Pair("N", trackedRegisterProvider.srN),
-      Pair("Z", trackedRegisterProvider.srZ),
-      Pair("C", trackedRegisterProvider.srC),
-      Pair("V", trackedRegisterProvider.srV)
+      Pair("N", trackedRegProv.srN),
+      Pair("Z", trackedRegProv.srZ),
+      Pair("C", trackedRegProv.srC),
+      Pair("V", trackedRegProv.srV)
     ]) {
       flagString += entry.second ? entry.first : "_";
     }
@@ -64,22 +70,31 @@ class _RegisterListState extends State<RegisterList> {
           ),
           for (int i = 0; i <= 16; i++)
             ...[
-              Tooltip(
-                message: trackedRegisterProvider.getValue(i == 16 ? 2 : i).commaSeparatedString,
-                child: Column(
-                  children: [
-                    Text(i == 16 ? "FLAG" : (namedRegisters.containsKey(i) ? "${namedRegisters[i]!}_$i" : " ${i < 10 ? '0' : ''}$i "), style: textStyle),
-                    SizedBox(height: widget.compact ? 1 : 2),
-                    Container(
-                      color: i == 0 ? Colors.cyanAccent : (i == 1 ? Colors.deepPurple : Colors.amber),
-                      child: SizedBox(
-                        height: 2,
-                        width: widget.compact ? 35 : 40,
+              InkWell(
+                onTap: () {
+                  int addr = trackedRegProv.getValue(i == 16 ? 2 : i);
+                  widget.scrollRequester.request(addr);
+                },
+                child: Tooltip(
+                  message: trackedRegProv.getValue(i == 16 ? 2 : i).commaSeparatedString + (
+                    i == 16 ? "\nCPU: ${trackedRegProv.srCPUOFF ? 'off' : 'on'}"
+                        "\nInterrupts: ${trackedRegProv.srGIE ? 'on' : 'off'}" : ""
+                  ),
+                  child: Column(
+                    children: [
+                      Text(i == 16 ? "FLAG" : (namedRegisters.containsKey(i) ? "${namedRegisters[i]!}_$i" : " ${i < 10 ? '0' : ''}$i "), style: textStyle),
+                      SizedBox(height: widget.compact ? 1 : 2),
+                      Container(
+                        color: i == 0 ? Colors.cyanAccent : (i == 1 ? Colors.deepPurple : Colors.amber),
+                        child: SizedBox(
+                          height: 2,
+                          width: widget.compact ? 35 : 40,
+                        ),
                       ),
-                    ),
-                    Text(i == 16 ? flagString : trackedRegisterProvider.getValue(i).hexString4, style: textStyle),
-                    SizedBox(width: widget.compact ? 45 : 50)
-                  ],
+                      Text(i == 16 ? flagString : trackedRegProv.getValue(i).hexString4, style: textStyle),
+                      SizedBox(width: widget.compact ? 45 : 50)
+                    ],
+                  ),
                 ),
               ),
               SizedBox(

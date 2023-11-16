@@ -24,7 +24,6 @@ import 'package:msp430_emulator/screens/homescreen.dart';
 import 'package:msp430_emulator/screens/tabbed_editor_screen.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
 
-import '../screens/test_screens.dart';
 
 class BottomTabs extends StatefulWidget {
   final int index;
@@ -85,7 +84,7 @@ class _BottomTabsState extends State<BottomTabs> with SingleTickerProviderStateM
   late final List<Widget> _widgetOptions = <Widget>[
     TabbedEditorScreen(key: _editKey),//CodeEditScreen(key: _editKey, path: "/home/sam/AppDev/msp430_emulator/test/widget_test.dart"),//TabbedEditorScreen(key: PageStorageKey("tabbedEditor")),//key: _screenKey1, path: '/home/sam/AppDev/msp430_emulator/test/widget_test.dart'),
     const HomeScreen(),
-    const ExecuteScreen(),
+    ExecuteScreen(),
   ];
 
   @override

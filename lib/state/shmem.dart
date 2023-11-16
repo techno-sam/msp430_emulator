@@ -41,6 +41,12 @@ class ShmemProvider extends ChangeNotifier {
 
   ShmemProvider(this.shmem);
 
+  Future<void> get ready async {
+    while (shmem.read(CMD) != 0) {
+      await Future.delayed(const Duration(microseconds: 5));
+    }
+  }
+
   void _cmd(_ShmemCommand cmd, [void Function()? preWrite]) {
     if (cmd == _ShmemCommand.none) return;
     int existing = shmem.read(CMD);
@@ -122,10 +128,13 @@ class RegistersProvider extends ChangeNotifier {
     return getValue(2) >> idx != 0;
   }
 
+  bool get srV => _getStatusBit(8);
   bool get srN => _getStatusBit(2);
   bool get srZ => _getStatusBit(1);
   bool get srC => _getStatusBit(0);
-  bool get srV => _getStatusBit(8);
+
+  bool get srCPUOFF => _getStatusBit(4);
+  bool get srGIE => _getStatusBit(3);
 }
 
 class MemoryProvider extends ChangeNotifier {

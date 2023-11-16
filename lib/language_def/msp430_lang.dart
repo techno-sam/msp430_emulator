@@ -65,7 +65,7 @@ Mode msp430Lang() {
       Mode(
         className: "formula",
         begin:
-          r"^\s*\b(rrc|swpb|rra|sxt|push|call|reti|jne|jnz|jeq|jz|jnc|jlo|jc|jhs|jn|jge|jl|jmp|mov|add|addc|subc|sub|cmp|dadd|bit|bic|bis|xor|and|adc|br|clr|clrc|clrn|clrz|dadc|dec|decd|dint|enit|inc|incd|inv|nop|pop|ret|rla|rlc|sbc|setc|setn|setz|tst|hcf)\b"
+          r"^\s*\b(rrc|swpb|rra|sxt|push|call|reti|jne|jnz|jeq|jz|jnc|jlo|jc|jhs|jn|jge|jl|jmp|mov|add|addc|subc|sub|cmp|dadd|bit|bic|bis|xor|and|adc|br|clr|clrc|clrn|clrz|dadc|dec|decd|dint|eint|inc|incd|inv|nop|pop|ret|rla|rlc|sbc|setc|setn|setz|tst|hcf)\b"
       ),
       Mode(
           className: "comment",
