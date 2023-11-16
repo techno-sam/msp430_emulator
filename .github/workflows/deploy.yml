@@ -116,13 +116,13 @@ jobs:
             cp -v packaging/deb/msp430-emu.deb ./
             echo "ADDITIONAL_ASSET=msp430-emu.deb" >> $GITHUB_ENV
           elif [ "${{ matrix.os }}" = "windows-latest" ]; then
-            echo "build/"
+            echo "ls build/"
             ls "build/"
-            echo "build/windows/"
+            echo "ls build/windows/"
             ls "build/windows/"
-            echo "build/windows/runner/"
-            ls "build/windows/runner/"
-            mv "build/${{ matrix.flutter-target }}/runner/Release" "$dirname"
+            echo "ls build/windows/x64/"
+            ls "build/windows/x64/"
+            mv "build/${{ matrix.flutter-target }}/x64/bundle" "$dirname"
           else
             echo "OS not recognized..."
           fi
