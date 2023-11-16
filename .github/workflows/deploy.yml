@@ -84,7 +84,7 @@ jobs:
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             cp "target/${{ matrix.target }}/release/libshmem_ffi.so" "target/release/"
             echo "Getting flutter dependencies"
-            flutter pub get --directory ${{ matrix.flutter-target }}
+            flutter pub get
             echo "Fetching and setting up rust emulator binary"
             cd buildscripts && dart download_rust_emu.dart && cd ..
           elif [ "${{ matrix.os }}" = "windows-latest" ]; then
