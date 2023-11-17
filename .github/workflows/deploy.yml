@@ -89,6 +89,10 @@ jobs:
             cd buildscripts && dart download_rust_emu.dart && cd ..
           elif [ "${{ matrix.os }}" = "windows-latest" ]; then
             cp "target/${{ matrix.target }}/release/shmem_ffi.dll" "target/release/"
+            echo "Getting flutter dependencies"
+            flutter pub get
+            echo "Fetching and setting up rust emulator binary"
+            cd buildscripts && dart download_rust_emu.dart && cd ..
           elif [ "${{ matrix.os }}" = "macos-latest" ]; then
             cp "target/${{ matrix.target }}/release/libshmem_ffi.dylib" "target/release/"
           fi
@@ -116,13 +120,22 @@ jobs:
             cp -v packaging/deb/msp430-emu.deb ./
             echo "ADDITIONAL_ASSET=msp430-emu.deb" >> $GITHUB_ENV
           elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+            echo
             echo "ls build/"
             ls "build/"
+            echo
             echo "ls build/windows/"
             ls "build/windows/"
+            echo
             echo "ls build/windows/x64/"
             ls "build/windows/x64/"
-            mv "build/${{ matrix.flutter-target }}/x64/bundle" "$dirname"
+            echo
+            echo "ls build/windows/x64/x64"
+            ls "build/windows/x64/x64"
+            echo
+            echo "ls build/windows/x64/runner"
+            ls "build/windows/x64/runner"
+            mv "build/${{ matrix.flutter-target }}/x64/runner/Release" "$dirname"
           else
             echo "OS not recognized..."
           fi
