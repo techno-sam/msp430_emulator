@@ -26,5 +26,5 @@ flutter build linux --release
 echo "Copying files for deb"
 cp -rv ../build/linux/x64/release/bundle/* ../packaging/deb/msp430-emu/usr/lib/msp430-emu/
 echo "Generating deb"
-cd ../packaging/deb/ && dpkg-deb --build msp430-emu && cd ../../buildscripts || echo "Failed to cd back"
+cd ../packaging/deb/ && dpkg-deb --root-owner-group --build msp430-emu && cd ../../buildscripts || echo "Failed to cd back"
 echo "Done"

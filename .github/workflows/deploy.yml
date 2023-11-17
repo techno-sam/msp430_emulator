@@ -111,12 +111,12 @@ jobs:
           # mkdir "$dirname"
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             mv packaging/deb/msp430-emu/usr/lib/msp430-emu packaging/deb/msp430-emu/usr/lib/msp430-emu-old
+            chmod a+x "build/${{ matrix.flutter-target }}/x64/release/bundle/msp430_rust"
             cp -r "build/${{ matrix.flutter-target }}/x64/release/bundle" packaging/deb/msp430-emu/usr/lib/msp430-emu
-            cp packaging/deb/msp430-emu/usr/lib/msp430-emu-old/launch_both.sh packaging/deb/msp430-emu/usr/lib/msp430-emu/
             rm -rf packaging/deb/msp430-emu/usr/lib/msp430-emu-old
             mv "build/${{ matrix.flutter-target }}/x64/release/bundle" "$dirname"
             echo "Generating deb"
-            cd packaging/deb/ && dpkg-deb --build msp430-emu && cd ../../ || echo "Failed to cd back"
+            cd packaging/deb/ && dpkg-deb --root-owner-group --build msp430-emu && cd ../../ || echo "Failed to cd back"
             cp -v packaging/deb/msp430-emu.deb ./
             echo "ADDITIONAL_ASSET=msp430-emu.deb" >> $GITHUB_ENV
           elif [ "${{ matrix.os }}" = "windows-latest" ]; then
