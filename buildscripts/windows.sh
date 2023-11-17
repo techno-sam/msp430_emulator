@@ -20,5 +20,5 @@
 echo "Building Rust..."
 cargo build --release
 echo "Building Flutter..."
-flutter build windows --release
+flutter build windows --release -v
 echo "Done"
