@@ -20,8 +20,10 @@
 
 import 'dart:ffi';
 import 'dart:io' show Platform;
+import 'package:ffi/ffi.dart';
 
 import 'package:flutter/foundation.dart';
+import 'package:highlight/languages/cal.dart';
 
 typedef shared_memory = NativeType;
 typedef shmem_ptr = Pointer<shared_memory>;
@@ -63,8 +65,10 @@ class NotSupportedPlatform extends Error {
   NotSupportedPlatform(String s);
 }
 
-class Shmem {
+class Shmem implements Finalizable {
+  static final NativeFinalizer _finalizer = NativeFinalizer(_cleanupFnc);
   static late DynamicLibrary _lib;
+  static late Pointer<NativeFunction<Void Function(shmem_ptr)>> _cleanupFnc;
   static bool _init = false;
   late shmem_ptr _ptr;
   bool _destroyed = false;
@@ -78,11 +82,18 @@ class Shmem {
       } else {
         _lib = load();
       }
+      _cleanupFnc = _lib.lookup('ffi_cleanup');
       _init = true;
     }
   }
+  
+  factory Shmem() {
+    Shmem shmem = Shmem._();
+    _finalizer.attach(shmem, shmem._ptr.cast(), detach: shmem);
+    return shmem;
+  }
 
-  Shmem() {
+  Shmem._() {
     _initLib();
 
     final createPointer = _lib.lookup<NativeFunction<create_shared_memory_func>>('ffi_create');
@@ -90,7 +101,7 @@ class Shmem {
   }
 
   void reload() {
-    destroy();
+    destroy(reload: true);
     final createPointer = _lib.lookup<NativeFunction<create_shared_memory_func>>('ffi_create');
     _ptr = createPointer.asFunction<CreateSharedMemory>()();
     _destroyed = false;
@@ -122,10 +133,13 @@ class Shmem {
       ('ffi_is_real', isLeaf: true)(_ptr);
   }
 
-  void destroy() {
+  void destroy({bool reload = false}) {
     assert(!_destroyed, "Use-after-free, ya numbskull");
+    _destroyed = true;
     _lib.lookupFunction<cleanup_shared_memory_func, CleanupSharedMemory>
       ('ffi_cleanup', isLeaf: true)(_ptr);
-    _destroyed = true;
+    if (!reload) {
+      calloc.free(_ptr);
+    }
   }
 }

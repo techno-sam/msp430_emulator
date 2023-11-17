@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="download_rust_emu debug" type="DartCommandLineRunConfigurationType" factoryName="Dart Command Line Application">
+    <option name="arguments" value="debug" />
+    <option name="filePath" value="$PROJECT_DIR$/buildscripts/download_rust_emu.dart" />
+    <option name="workingDirectory" value="$PROJECT_DIR$/buildscripts" />
+    <method v="2" />
+  </configuration>
+</component>

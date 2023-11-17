@@ -122,7 +122,9 @@ foreach(bundled_library ${PLUGIN_BUNDLED_LIBRARIES})
     COMPONENT Runtime)
 endforeach(bundled_library)
 install(FILES "../target/release/libshmem_ffi.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
-install(FILES "${CMAKE_INSTALL_PREFIX}/../tmp/msp430_rust" DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT Runtime)
+if(NOT CMAKE_BUILD_TYPE MATCHES "Profile")
+  install(FILES "../target/release/msp430_rust" DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT Runtime)
+endif()
 
 # Fully re-copy the assets directory on each build to avoid having stale files
 # from a previous install.

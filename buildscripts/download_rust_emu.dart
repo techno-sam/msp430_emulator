@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 /*
  *     MSP430 emulator and assembler
  *     Copyright (C) 2023  Sam Wagenaar
@@ -23,28 +25,34 @@ import 'package:http/http.dart' as http;
 class PlatformData {
   final String searchName;
   final Uri buildPath;
+  final Uri debugBuildPath;
   final String zipName;
 
-  PlatformData({required this.searchName, required this.buildPath, required this.zipName});
+  PlatformData({required this.searchName, required this.buildPath,
+    required this.debugBuildPath, required this.zipName});
 
 }
 
 final Map<String, PlatformData> platformConfigs = {
   "linux": PlatformData(
       searchName: "linux-gnu",
-      buildPath: Uri.file("../build/linux/x64/release/tmp/"),
+      buildPath: Uri.file("../target/release/"),
+      debugBuildPath: Uri.file("../target/release/"),
       zipName: "msp430_rust.tar.gz"),
   "windows": PlatformData(
       searchName: "windows-gnu",
-      buildPath: Uri.file("../build/windows/x64/runner/tmp/"),
+      buildPath: Uri.file("../target/release/"),
+      debugBuildPath: Uri.file("../target/release/"),
       zipName: "msp430_rust.exe.zip"),
   "macos": PlatformData(
       searchName: "apple-darwin",
-      buildPath: Uri.file("todo_fixme"),
+      buildPath: Uri.file("../target/release/"),
+      debugBuildPath: Uri.file("../target/release/"),
       zipName: "msp430_rust.tar.gz"),
 };
 
-void main() async {
+void main(List<String> args) async {
+  bool debug = args.isNotEmpty && args[0] == "debug";
   PlatformData data = platformConfigs[Platform.operatingSystem]!;
   print("Fetching assets metadata");
   var response = await http.get(Uri.parse("https://api.github.com/repos/techno-sam/msp430_rust/releases/latest"));
@@ -60,16 +68,17 @@ void main() async {
       var downloadResponse = await http.get(Uri.parse(downloadUrl));
       if (downloadResponse.statusCode == 200) {
         print("Download succeeded");
-        await Directory.fromUri(data.buildPath).create(recursive: true);
-        File file = File.fromUri(data.buildPath.resolve(data.zipName));
+        var buildPath = debug ? data.debugBuildPath : data.buildPath;
+        await Directory.fromUri(buildPath).create(recursive: true);
+        File file = File.fromUri(buildPath.resolve(data.zipName));
         await file.writeAsBytes(downloadResponse.bodyBytes);
         print("Wrote to ${file.absolute.path}");
         if (Platform.isLinux) {
-          await Process.run("tar", ["-xvf", "./${data.zipName}"], workingDirectory: data.buildPath.path);
-          await Process.run("cp", ["-v", "./${name.replaceAll(".tar.gz", "")}/msp430_rust", "./"], workingDirectory: data.buildPath.path);
+          await Process.run("tar", ["-xvf", "./${data.zipName}"], workingDirectory: buildPath.path);
+          await Process.run("cp", ["-v", "./${name.replaceAll(".tar.gz", "")}/msp430_rust", "./"], workingDirectory: buildPath.path);
         } else if (Platform.isWindows) {
-          await Process.run("tar", ["-xvf", "./${data.zipName}"], workingDirectory: data.buildPath.path);
-          await Process.run("cp", ["-v", "./${name.replaceAll(".zip", "")}/msp430_rust.exe", "./"], workingDirectory: data.buildPath.path);
+          await Process.run("tar", ["-xvf", "./${data.zipName}"], workingDirectory: buildPath.path);
+          await Process.run("cp", ["-v", "./${name.replaceAll(".zip", "")}/msp430_rust.exe", "./"], workingDirectory: buildPath.path);
         }
       } else {
         print("Download failed with code ${downloadResponse.statusCode}, ${downloadResponse.reasonPhrase}");

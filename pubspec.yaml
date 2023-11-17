@@ -45,6 +45,7 @@ dependencies:
   binary: ^3.0.1
   google_fonts: ^6.1.0
   http: ^1.1.0
+  ffi: ^2.1.0
 
   #editor:
   #  git: https://github.com/icedman/flutter_editor.git
