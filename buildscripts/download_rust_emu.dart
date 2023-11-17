@@ -36,7 +36,7 @@ final Map<String, PlatformData> platformConfigs = {
       zipName: "msp430_rust.tar.gz"),
   "windows": PlatformData(
       searchName: "windows-gnu",
-      buildPath: Uri.file("todo_fixme"),
+      buildPath: Uri.file("../build/windows/x64/runner/tmp"),
       zipName: "msp430_rust.exe.zip"),
   "macos": PlatformData(
       searchName: "apple-darwin",
@@ -65,6 +65,9 @@ void main() async {
         await file.writeAsBytes(downloadResponse.bodyBytes);
         print("Wrote to ${file.absolute.path}");
         if (Platform.isLinux) {
+          await Process.run("tar", ["-xvf", "./${data.zipName}"], workingDirectory: data.buildPath.path);
+          await Process.run("cp", ["-v", "./${name.replaceAll(".tar.gz", "")}/msp430_rust", "./"], workingDirectory: data.buildPath.path);
+        } else if (Platform.isWindows) {
           await Process.run("tar", ["-xvf", "./${data.zipName}"], workingDirectory: data.buildPath.path);
           await Process.run("cp", ["-v", "./${name.replaceAll(".tar.gz", "")}/msp430_rust", "./"], workingDirectory: data.buildPath.path);
         }

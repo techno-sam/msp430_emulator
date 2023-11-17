@@ -19,6 +19,8 @@
 
 echo "Building Rust..."
 cargo build --release
+echo "Fetching rust emulator"
+dart download_rust_emu.dart
 echo "Building Flutter..."
 flutter build windows --release
 echo "Done"
