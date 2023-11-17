@@ -14,7 +14,7 @@
     </p>
   </description>
   
-  <launchable type="desktop-id">io.github.techno-sam.msp430-emu.desktop</launchable>
+  <launchable type="desktop-id">io.github.techno-sam.msp430.desktop</launchable>
   <screenshots>
     <!--<screenshot type="default">
       <image>https://github.com/AppFlowy-IO/appflowy/raw/main/doc/imgs/welcome.png</image>
