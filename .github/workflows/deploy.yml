@@ -131,7 +131,7 @@ jobs:
             echo
             echo "ls build/windows/x64/runner"
             ls "build/windows/x64/runner"
-            mv "build/${{ matrix.flutter-target }}/x64/runner" "$dirname"
+            mv "build/${{ matrix.flutter-target }}/x64/runner/Release" "$dirname"
           else
             echo "OS not recognized..."
           fi
