@@ -133,7 +133,7 @@ Mode msp430Lang() {
       ),
       Mode(
         className: "meta",
-        begin: r"\.(data|text)"
+        begin: r"\.(data|text|locblk)"
       ),
       Mode(
         className: "meta",
@@ -143,6 +143,24 @@ Mode msp430Lang() {
             className: "string",
             begin: r"[^;]*",
             endsParent: true,
+          )
+        ]
+      ),
+      Mode(
+        className: "meta",
+        begin: r"\.include <",
+        contains: [
+          Mode(
+            className: "meta-string",
+            begin: r"[^<>;]*",
+            endsWithParent: true,
+            contains: [
+              Mode(
+                className: "meta",
+                begin: ">",
+                endsParent: true
+              )
+            ]
           )
         ]
       ),

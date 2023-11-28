@@ -35,10 +35,12 @@
  */
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:msp430_dart/msp430_dart.dart' show LineId;
 import 'package:msp430_emulator/language_def/tutor.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
 import 'package:msp430_emulator/utils/flags.dart';
@@ -94,7 +96,8 @@ class DocumentProvider extends ChangeNotifier {
   PageStorageBucket? _storageBucket;
   final Document doc = Document();
   final Map<String, void Function(BuildContext context, PageStorageBucket bucket)> _onRestore = {};
-  final Map<int, String> assemblyErrors = {};
+  // {lineNumberToDisplayOn: {'$fileName:$line'?: error msg}}
+  final Map<int, Map<String?, String>> assemblyErrors = {};
 
   bool _tutorEnabled = false;
   bool get tutorEnabled => _tutorEnabled;
@@ -114,16 +117,28 @@ class DocumentProvider extends ChangeNotifier {
   Future<void> assemble(ScaffoldMessengerState scaffoldMessenger) async {
     assemblyErrors.clear();
     String contents = await doc.saveFile(path: doc.docPath);
-    handleErrors(Map<int, String> errorMap) {
-      for (MapEntry<int, String> entry in errorMap.entries) {
-        if (!assemblyErrors.containsKey(entry.key)) { // associate first error for a line with that line
-          assemblyErrors[entry.key] = entry.value;
+    handleErrors(Map<LineId, String> errorMap) {
+      for (MapEntry<LineId, String> entry in errorMap.entries) {
+        int toDisplayOn = entry.key.includedByLine ?? entry.key.first;
+        String? lineDesc = entry.key.second.isEmpty ? null : "${entry.key.second}:::${entry.key.first + 1}";
+        if (!assemblyErrors.containsKey(toDisplayOn) || !assemblyErrors[toDisplayOn]!.containsKey(lineDesc)) { // associate first error for a line with that line
+          if (assemblyErrors[toDisplayOn] == null) {
+            assemblyErrors[toDisplayOn] = {};
+          }
+          assemblyErrors[toDisplayOn]![lineDesc] = entry.value;
         }
       }
     }
     Uint8List? assembled;
     try {
-      assembled = msp430.parse(contents, errorConsumer: handleErrors, silent: true);
+      assembled = msp430.parse(
+          contents,
+          errorConsumer: handleErrors,
+          silent: true,
+          containingDirectory: Directory.fromUri(Uri.file(
+              msp430.filePathToDirectory(doc.docPath)
+          )),
+      );
     } catch (ignored) {
       assembled = null;
     }
@@ -194,6 +209,17 @@ class DocumentProvider extends ChangeNotifier {
 
 const tutorAlignColumn = 20;
 
+String? generateError(Map<String?, String>? error) {
+  if (error == null || error.isEmpty) return null;
+  String out = error[null] ?? "";
+  for (MapEntry<String?, String> entry in error.entries) {
+    if (entry.key == null) continue;
+    List<String> split = entry.key!.split(":::");
+    out += "\n; <${split[0]}: ${split[1]}>: ${entry.value}";
+  }
+  return out;
+}
+
 class ViewLine extends StatelessWidget {
   const ViewLine({this.lineNumber = 0, this.text = '', super.key});
 
@@ -219,7 +245,7 @@ class ViewLine extends StatelessWidget {
           children: [
             const WidgetSpan(child: SizedBox(width: 40)),
             TextSpan(
-              text: "; ${doc.assemblyErrors[lineNumber] ?? ''}",
+              text: "; ${generateError(doc.assemblyErrors[lineNumber]) ?? ''}",
               style: GoogleFonts.firaCode(
                 textStyle: editorTheme['comment'],
                 fontSize: fontSize,
@@ -239,7 +265,7 @@ class ViewLine extends StatelessWidget {
           existingChars += span.getCharCount();
         }
       }
-      final line = msp430.Line(doc.doc.cursor.line, doc.doc.lines[doc.doc.cursor.line]);
+      final line = msp430.Line(LineId(doc.doc.cursor.line, ""), doc.doc.lines[doc.doc.cursor.line]);
       final List<msp430.Pair<msp430.Line, String>> errors = [];
 
       bool failed = false;
@@ -250,7 +276,7 @@ class ViewLine extends StatelessWidget {
         tokens = [];
         failed = true;
       }
-      List<msp430.Pair<int, String>> instrErrors = [];
+      List<msp430.Pair<LineId, String>> instrErrors = [];
       msp430.Instruction? instruction;
       if (!failed) {
         try {
@@ -413,7 +439,7 @@ class ViewLine extends StatelessWidget {
           )
         ),
         child: Tooltip(
-          message: doc.assemblyErrors[lineNumber] ?? "",
+          message: generateError(doc.assemblyErrors[lineNumber]) ?? "",
           child: Text('${lineNumber + 1} ', style: gutterStyle),
         )
       ),
