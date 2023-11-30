@@ -117,8 +117,8 @@ jobs:
             mv "build/${{ matrix.flutter-target }}/x64/release/bundle" "$dirname"
             echo "Generating deb"
             cd packaging/deb/ && dpkg-deb --root-owner-group --build msp430-emu && cd ../../ || echo "Failed to cd back"
-            cp -v packaging/deb/msp430-emu.deb ./
-            echo "ADDITIONAL_ASSET=msp430-emu.deb" >> $GITHUB_ENV
+            cp -v packaging/deb/msp430-emu.deb ./msp430-emu-${{ env.VERSION }}.deb
+            echo "ADDITIONAL_ASSET=msp430-emu-${{ env.VERSION }}.deb" >> $GITHUB_ENV
           elif [ "${{ matrix.os }}" = "windows-latest" ]; then
             echo
             echo "ls build/"
