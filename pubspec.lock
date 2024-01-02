@@ -213,10 +213,10 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "0b4651fe4a9133b9716d655b05d6304dffe74479"
+      resolved-ref: d307b7d8c365bb4d4314f7b0b34b9a76fc38f1e7
       url: "https://github.com/techno-sam/msp430_dart.git"
     source: git
-    version: "0.2.6"
+    version: "0.2.7"
   nested:
     dependency: transitive
     description:
@@ -245,10 +245,10 @@ packages:
     dependency: transitive
     description:
       name: path_provider_android
-      sha256: e595b98692943b4881b219f0a9e3945118d3c16bd7e2813f98ec6e532d905f72
+      sha256: "477184d672607c0a3bf68fbbf601805f92ef79c82b64b4d6eb318cbca4c48668"
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.1"
+    version: "2.2.2"
   path_provider_foundation:
     dependency: transitive
     description:
@@ -394,10 +394,10 @@ packages:
     dependency: transitive
     description:
       name: win32
-      sha256: "7c99c0e1e2fa190b48d25c81ca5e42036d5cac81430ef249027d97b0935c553f"
+      sha256: b0f37db61ba2f2e9b7a78a1caece0052564d1bc70668156cf3a29d676fe4e574
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.0"
+    version: "5.1.1"
   xdg_directories:
     dependency: transitive
     description:
@@ -408,4 +408,4 @@ packages:
     version: "1.0.3"
 sdks:
   dart: ">=3.2.0 <4.0.0"
-  flutter: ">=3.7.0"
+  flutter: ">=3.10.0"
