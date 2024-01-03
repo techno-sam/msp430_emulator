@@ -1,5 +1,5 @@
 Package: msp430-emu
-Version: 1.2.4
+Version: 1.2.5
 Architecture: amd64
 Essential: no
 Priority: optional

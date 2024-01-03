@@ -1,8 +1,6 @@
-// ignore_for_file: avoid_print
-
 /*
  *     MSP430 emulator and assembler
- *     Copyright (C) 2023  Sam Wagenaar
+ *     Copyright (C) 2023-2024  Sam Wagenaar
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -17,6 +15,9 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+// ignore_for_file: avoid_print
+
 import 'dart:convert';
 import 'dart:io';
 
