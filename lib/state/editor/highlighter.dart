@@ -120,6 +120,14 @@ class Pair<A, B> {
   B second;
 
   Pair(this.first, this.second);
+
+  @override
+  int get hashCode => Object.hash(first, second);
+
+  @override
+  bool operator ==(covariant Pair<A, B> other) {
+    return other.first == first && other.second == second;
+  }
 }
 
 class _Token {}

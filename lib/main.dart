@@ -65,11 +65,11 @@ class MyApp extends StatelessWidget {
   
   void _launchEmulator() async {
     // launch emulator
-    if (kDebugMode) {
+    if (kDebugMode || kProfileMode) {
       print("my pid: $pid");
     }
-    if (!kProfileMode) {
-      await Process.run("${kDebugMode ? "target/release/" : ""}msp430_rust", ["run-forked", "$pid"]);
+    if (true) {
+      await Process.run("${(kDebugMode || kProfileMode) ? "target/release/" : ""}msp430_rust", ["run-forked", "$pid"]);
       shmemProvider.reload();
     }
   }

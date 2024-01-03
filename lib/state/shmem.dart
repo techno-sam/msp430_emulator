@@ -148,9 +148,9 @@ class MemoryProvider extends ChangeNotifier {
   void _update(Timer timer) async {
     for (int i = 0; i < 0x10000; i++) {
       _data[i] = shmem.read(i);
-      if (i % 0xff == 0) {
-        await Future.delayed(Duration.zero);
-      }
+      //if (i % 0xff == 0) {
+      //  await Future.delayed(Duration.zero);
+      //}
     }
     notifyListeners();
   }

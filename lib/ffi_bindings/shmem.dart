@@ -24,6 +24,7 @@ import 'package:ffi/ffi.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:highlight/languages/cal.dart';
+import 'package:msp430_emulator/state/editor/highlighter.dart';
 
 typedef shared_memory = NativeType;
 typedef shmem_ptr = Pointer<shared_memory>;
@@ -107,10 +108,12 @@ class Shmem implements Finalizable {
     _destroyed = false;
   }
 
+  ReadSharedMemory? _read;
   int read(int idx) {
     assert(!_destroyed, "Use-after-free, ya numbskull");
-    return _lib.lookupFunction<read_shared_memory_func, ReadSharedMemory>
-      ('ffi_read', isLeaf: true)(_ptr, idx & 0xffffffff);
+    _read ??= _lib.lookupFunction<read_shared_memory_func, ReadSharedMemory>
+        ('ffi_read', isLeaf: true);
+    return _read!(_ptr, idx & 0xffffffff);
   }
 
   void writeStr(int idx, String value) {
@@ -121,16 +124,20 @@ class Shmem implements Finalizable {
     write(idx, 0);
   }
 
+  WriteSharedMemory? _write;
   void write(int idx, int value) {
     assert(!_destroyed, "Use-after-free, ya numbskull");
-    _lib.lookupFunction<write_shared_memory_func, WriteSharedMemory>
-      ('ffi_write', isLeaf: true)(_ptr, idx & 0xffffffff, value & 0xff);
+    _write ??= _lib.lookupFunction<write_shared_memory_func, WriteSharedMemory>
+      ('ffi_write', isLeaf: true);
+    return _write!(_ptr, idx & 0xffffffff, value & 0xff);
   }
 
+  IsReal? _isReal;
   bool isReal() {
     assert(!_destroyed, "Use-after-free, ya numbskull");
-    return _lib.lookupFunction<is_real_func, IsReal>
-      ('ffi_is_real', isLeaf: true)(_ptr);
+    _isReal ??= _lib.lookupFunction<is_real_func, IsReal>
+      ('ffi_is_real', isLeaf: true);
+    return _isReal!(_ptr);
   }
 
   void destroy({bool reload = false}) {

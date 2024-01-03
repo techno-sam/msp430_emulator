@@ -74,22 +74,40 @@ class _MemoryViewState extends State<MemoryView> {
 
   late ScrollController scroller;
   late Object _scrollRequestHandlerKey;
-  final _TimeoutTracker _timeout = _TimeoutTracker();
+  //final _TimeoutTracker _timeout = _TimeoutTracker();
 
   @override
   void initState() {
     scroller = ScrollController();
-    scroller.addListener(() => _timeout.timeout(const Duration(milliseconds: 600)));
+    //scroller.addListener(() => _timeout.timeout(const Duration(milliseconds: 600)));
     _scrollRequestHandlerKey = widget.scrollRequester.registerHandler(_scrollToAddress);
     super.initState();
   }
-  
+
   @override
   void dispose() {
     scroller.dispose();
     widget.scrollRequester.clearHandler(_scrollRequestHandlerKey);
     super.dispose();
   }
+
+  /*int _getChildCount([Element? element]) {
+    int count = 0;
+    if (element == null) {
+      context.visitChildElements((element) {
+        count += _getChildCount(element);
+      });
+    }
+
+    element?.visitChildElements((element) {
+      if (element.widget is _MemoryViewLine) {
+        count += 1;
+      } else {
+        count += _getChildCount(element);
+      }
+    });
+    return count;
+  }*/
 
   double? _getLineHeight([Element? element]) {
     double? height;
@@ -111,12 +129,12 @@ class _MemoryViewState extends State<MemoryView> {
   void _scrollTo(int index) {
     double? height = _getLineHeight();
     double target = (height ?? 20) * (index + 0.5);
-    /*scroller.animateTo(
+    scroller.animateTo(
       target,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 100),
       curve: Curves.easeInOut
-    );*/
-    scroller.jumpTo(target);
+    );
+    //scroller.jumpTo(target);
   }
 
   void _scrollToAddress(int address) {
@@ -146,23 +164,17 @@ class _MemoryViewState extends State<MemoryView> {
               return null;
             }
           },
+          prototypeItem: const _MemoryViewLine(index: 0, key: _MemoryLineKey(0)),
         ),
       ),
     );
   }
 }
 
-/*class _MemoryViewLine extends StatefulWidget {
-  const _MemoryViewLine({super.key, required this.index, required this.computer, required this.timeoutTracker});
-  final int index;
-  final MainSideComputer computer;
-  final _TimeoutTracker timeoutTracker;
-
-  @override
-  State<_MemoryViewLine> createState() => _MemoryViewLineState();
-}*/
-
 class _MemoryViewLine extends StatelessWidget {
+  static final TextStyle textStyle = GoogleFonts.firaCode(fontSize: 14, color: ColorExtension.selectedGreen);
+  static final TextStyle textStyle2 = GoogleFonts.firaCode(fontSize: 14, color: ColorExtension.unselectedGreen);
+  static final TextStyle pcStyle = GoogleFonts.firaCode(fontSize: 14, color: Colors.cyanAccent);
 
   final int index;
 
@@ -172,9 +184,6 @@ class _MemoryViewLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final RegistersProvider reg = Provider.of<RegistersProvider>(context);
     final MemoryProvider mem = Provider.of<MemoryProvider>(context);
-    TextStyle textStyle = GoogleFonts.firaCode(fontSize: 14, color: ColorExtension.selectedGreen);
-    TextStyle textStyle2 = GoogleFonts.firaCode(fontSize: 14, color: ColorExtension.unselectedGreen);
-    TextStyle pcStyle = GoogleFonts.firaCode(fontSize: 14, color: Colors.cyanAccent);
 
     int pc = reg.getValue(0);
     int sp = reg.getValue(1);
@@ -187,6 +196,27 @@ class _MemoryViewLine extends StatelessWidget {
       int memVal = mem.get(lineStartAddress + i);
       lineString += memVal < 32 || memVal > 126 ? "." : String.fromCharCode(memVal);
     }
+
+    List<InlineSpan> spans = [
+      for (int i = 0; i < bytesPerLine/2; i++)
+        ...[
+          TextSpan(
+              text: mem.getWord(lineStartAddress + i*2).hexString4.replaceAll("0000", "----"),
+              style: applyConditional<TextStyle>(
+                  (lineStartAddress + (i * 2) == pc)
+                      ? pcStyle
+                      : (i % 2 == 1 ? textStyle : textStyle2),
+                  (lineStartAddress + (i * 2)) == sp,
+                      (t) => t.copyWith(
+                      backgroundColor: Colors.deepPurple
+                  )
+              )
+          ),
+          const WidgetSpan(child: SizedBox(width: 10)),
+        ],
+    ];
+
+    TextSpan parentSpan = TextSpan(children: spans);
 
     return Row(
       children: [
@@ -201,22 +231,7 @@ class _MemoryViewLine extends StatelessWidget {
           )
         ),
         const SizedBox(width: 20),
-        for (int i = 0; i < bytesPerLine/2; i++)
-          ...[
-            Text(
-              mem.getWord(lineStartAddress + i*2).hexString4.replaceAll("0000", "----"),
-              style: applyConditional<TextStyle>(
-                (lineStartAddress + (i * 2) == pc)
-                  ? pcStyle
-                  : (i % 2 == 1 ? textStyle : textStyle2),
-                  (lineStartAddress + (i * 2)) == sp,
-                  (t) => t.copyWith(
-                    backgroundColor: Colors.deepPurple
-                  )
-              )
-            ),
-            const SizedBox(width: 10),
-          ],
+        RichText(text: parentSpan, softWrap: false),
         const SizedBox(width: 30),
         Text(
           lineString,
