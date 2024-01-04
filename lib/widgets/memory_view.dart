@@ -50,7 +50,7 @@ class _MemoryLineKey extends ValueKey<int> {
   const _MemoryLineKey(super.value);
 }
 
-class _TimeoutTracker {
+/*class _TimeoutTracker {
   DateTime _endTime = DateTime.fromMicrosecondsSinceEpoch(0);
   void timeout(Duration duration) {
     DateTime end = DateTime.now().add(duration);
@@ -60,7 +60,7 @@ class _TimeoutTracker {
   }
 
   bool get isTimedOut => DateTime.now().isBefore(_endTime);
-}
+}*/
 
 class MemoryView extends StatefulWidget {
   final AddressScrollRequester scrollRequester;

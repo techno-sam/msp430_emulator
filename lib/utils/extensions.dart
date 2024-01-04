@@ -19,6 +19,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+export 'package:msp430_dart/msp430_dart.dart' show IntRepresentations;
 
 extension ColorExtension on Color {
   static const Color deepSlateBlue = Color(0xFF3f6690);
@@ -35,7 +36,7 @@ extension ColorExtension on Color {
   }
 }
 
-extension IntRepresentations on int {
+/*extension IntRepresentations on int {
   String get hexString4 {
     String str = toRadixString(16);
     return "0" * (4 - str.length) + str;
@@ -59,7 +60,7 @@ extension IntRepresentations on int {
     }
     return out;
   }
-}
+}*/
 
 T applyConditional<T>(T value, bool apply, T Function(T v) modifier) {
   return apply ? modifier(value) : value;

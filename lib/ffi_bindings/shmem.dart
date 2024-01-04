@@ -23,8 +23,6 @@ import 'dart:io' show Platform;
 import 'package:ffi/ffi.dart';
 
 import 'package:flutter/foundation.dart';
-import 'package:highlight/languages/cal.dart';
-import 'package:msp430_emulator/state/editor/highlighter.dart';
 
 typedef shared_memory = NativeType;
 typedef shmem_ptr = Pointer<shared_memory>;

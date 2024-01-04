@@ -16,6 +16,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -66,7 +67,7 @@ class MyApp extends StatelessWidget {
   void _launchEmulator() async {
     // launch emulator
     if (kDebugMode || kProfileMode) {
-      print("my pid: $pid");
+      log("my pid: $pid");
     }
     if (true) {
       await Process.run("${(kDebugMode || kProfileMode) ? "target/release/" : ""}msp430_rust", ["run-forked", "$pid"]);

@@ -133,7 +133,7 @@ Mode msp430Lang() {
       ),
       Mode(
         className: "meta",
-        begin: r"\.(data|text|locblk)"
+        begin: r"\.(data|text|locblk|dbgbrk)"
       ),
       Mode(
         className: "meta",

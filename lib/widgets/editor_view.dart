@@ -98,11 +98,20 @@ class DocumentProvider extends ChangeNotifier {
   final Map<String, void Function(BuildContext context, PageStorageBucket bucket)> _onRestore = {};
   // {lineNumberToDisplayOn: {'$fileName:$line'?: error msg}}
   final Map<int, Map<String?, String>> assemblyErrors = {};
+  Map<int, Pair<int, List<int>>> _assembledLines = {};
+  Map<int, Pair<int, List<int>>> get assembledLines => _assembledLines;
 
   bool _tutorEnabled = false;
   bool get tutorEnabled => _tutorEnabled;
   void toggleTutor() {
     _tutorEnabled = !_tutorEnabled;
+    touch();
+  }
+
+  bool _showAssembled = false;
+  bool get showAssembledData => _showAssembled;
+  void toggleShowAssembled() {
+    _showAssembled = !_showAssembled;
     touch();
   }
 
@@ -116,6 +125,7 @@ class DocumentProvider extends ChangeNotifier {
 
   Future<void> assemble(ScaffoldMessengerState scaffoldMessenger) async {
     assemblyErrors.clear();
+    assembledLines.clear();
     String contents = await doc.saveFile(path: doc.docPath);
     handleErrors(Map<LineId, String> errorMap) {
       for (MapEntry<LineId, String> entry in errorMap.entries) {
@@ -130,6 +140,7 @@ class DocumentProvider extends ChangeNotifier {
       }
     }
     Uint8List? assembled;
+    msp430.MutableObject<msp430.ListingGenerator> listing = msp430.MutableObject();
     try {
       assembled = msp430.parse(
           contents,
@@ -138,12 +149,21 @@ class DocumentProvider extends ChangeNotifier {
           containingDirectory: Directory.fromUri(Uri.file(
               msp430.filePathToDirectory(doc.docPath)
           )),
+          listingGen: listing
       );
     } catch (ignored) {
       assembled = null;
+      listing.clear();
     }
 
     _assemblyStatus = AssemblyStatus.fromSuccess(assembled != null);
+    _assembledLines = {};
+    if (listing.get() != null) {
+      for (msp430.ListingEntry line in listing.get()!.entries) {
+        if (line.line.second != "") continue;
+        _assembledLines[line.line.first] = Pair(line.pc, line.words);
+      }
+    }
 
     if (assembled != null) {
       scaffoldMessenger.showSnackBar(SnackBar(
@@ -151,6 +171,10 @@ class DocumentProvider extends ChangeNotifier {
         backgroundColor: ColorExtension.deepSlateBlue
       ));
       await msp430.writeCompiledByName(assembled, doc.docPath.replaceAll(".asm", ".bin"));
+      if (listing.get() != null) {
+        var listingFile = File(doc.docPath.replaceAll(".asm", ".lst"));
+        await listingFile.writeAsString(listing.get()!.output(), flush: true);
+      }
     } else {
       scaffoldMessenger.showSnackBar(SnackBar(
           content: Text("Assembly of ${doc.docPath} failed!"),
@@ -182,6 +206,9 @@ class DocumentProvider extends ChangeNotifier {
     doc.saveFile(path: doc.docPath);
     if (_bucketContext != null && _storageBucket != null) {
       doc.writeToBucket(_bucketContext!, _storageBucket!);
+      _storageBucket!.writeState(_bucketContext!, _tutorEnabled, identifier: const ValueKey("tutorEnabled"));
+      _storageBucket!.writeState(_bucketContext!, _assembledLines, identifier: const ValueKey("assembledLines"));
+      _storageBucket!.writeState(_bucketContext!, _showAssembled, identifier: const ValueKey("showAssembled"));
     }
     super.dispose();
   }
@@ -189,6 +216,9 @@ class DocumentProvider extends ChangeNotifier {
   void restore(bool restoreTextFromBucket) {
     if (_bucketContext != null && _storageBucket != null) {
       doc.restoreFromBucket(_bucketContext!, _storageBucket!, restoreTextFromBucket);
+      _tutorEnabled = _storageBucket!.readState(_bucketContext!, identifier: const ValueKey("tutorEnabled")) ?? false;
+      _assembledLines = _storageBucket!.readState(_bucketContext!, identifier: const ValueKey("assembledLines")) ?? {};
+      _showAssembled = _storageBucket!.readState(_bucketContext!, identifier: const ValueKey("showAssembled")) ?? false;
       for (void Function(BuildContext context, PageStorageBucket bucket) f in _onRestore.values) {
         f(_bucketContext!, _storageBucket!);
       }
@@ -370,9 +400,30 @@ class ViewLine extends StatelessWidget {
         color: lineHasError ? Colors.red : editorTheme['comment']?.color,
         fontWeight: lineHasError ? FontWeight.bold : null
     );
+    final String gutterPrefix;
+    if (doc.showAssembledData) {
+      Pair<int, List<int>>? assembledLine = doc.assembledLines[lineNumber];
+      if (assembledLine != null) {
+        List<String> out = [];
+        for (int i = 0; i < 3; i++) {
+          if (i < assembledLine.second.length) {
+            out.add(assembledLine.second[i].hexString4);
+          } else {
+            out.add(" "*4);
+          }
+        }
+        String paddedWords = out.join(" ");
+
+        gutterPrefix = "0x${assembledLine.first.hexString4}  $paddedWords";
+      } else {
+        gutterPrefix = " " * "0x4242  1111 2222 3333".length;
+      }
+    } else {
+      gutterPrefix = "";
+    }
     double gutterPadding = 3;
     double gutterWidth =
-        getTextExtents(' ${doc.doc.lines.length} ', gutterStyle).width + gutterPadding;
+        getTextExtents(' $gutterPrefix${gutterPrefix.isNotEmpty ? "  " : ""}${doc.doc.lines.length} ', gutterStyle).width + gutterPadding;
 
     //Offset pos = Offset.zero;
     Size extents = Size.zero;
@@ -439,10 +490,26 @@ class ViewLine extends StatelessWidget {
           )
         ),
         child: Tooltip(
-          message: generateError(doc.assemblyErrors[lineNumber]) ?? "",
-          child: Text('${lineNumber + 1} ', style: gutterStyle),
+          message: generateError(doc.assemblyErrors[lineNumber]) ?? "Toggle assembled preview",
+          child: InkWell(
+            onTap: doc.toggleShowAssembled,
+            child: Text('${lineNumber + 1} ', style: gutterStyle),
+          ),
         )
       ),
+      if (gutterPrefix.isNotEmpty)
+        Container(
+          width: gutterWidth - gutterPadding,
+          alignment: Alignment.centerLeft,
+          /*decoration: BoxDecoration(
+              border: Border(
+                  right: BorderSide(
+                      color: lineHasError ? Colors.red : editorTheme['root']?.color ?? Colors.black
+                  )
+              )
+          ),*/
+          child: Text(' $gutterPrefix', style: gutterStyle)
+        ),
       ...carets
     ]);
   }
