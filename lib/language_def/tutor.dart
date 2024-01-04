@@ -63,7 +63,7 @@ Map<String, String> get mnemonicTutors {
     "and": "src .AND. dst -> dst",
     "bic": ".NOT.src .AND. dst -> dst",
     "bis": "src .OR. dst -> dst",
-    "bit": "src .AND. dst -> dst",
+    "bit": "src .AND. dst -> Flags",
     "br": "dst -> PC",
     "call": "call function at dst, storing PC on the stack",
     "clr": "0 -> dst",
