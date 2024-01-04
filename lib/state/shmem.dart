@@ -142,7 +142,7 @@ class MemoryProvider extends ChangeNotifier {
   final List<int> _data = List.filled(0x10000, 0);
 
   MemoryProvider(this.shmem) {
-    Timer.periodic(const Duration(milliseconds: 250), _update);
+    Timer.periodic(const Duration(milliseconds: 64), _update);
   }
 
   void _update(Timer timer) async {

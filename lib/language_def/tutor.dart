@@ -106,7 +106,7 @@ Map<String, String> get mnemonicTutors {
     "subc": "dst + .NOT.src + C -> dst (effectively dst - src - 1 + C -> dst",
     "swpb": "Swap bytes in dst (Bits 15 to 8 <-> bits 7 to 0)",
     "sxt": "Sign extend (converts s8 -> s16 by Bit 7 -> Bit 8 ... Bit 15)",
-    "tst": "dst + 0xffff + 1 -> N and Z flags",
+    "tst": "dst + 0xffff + 1 -> N and Z flags (check dst equals 0)",
     "xor": "src .XOR. dst -> dst",
     "hcf": "Halt and Catch Fire (jmp 0)",
   };
