@@ -34,8 +34,8 @@ class TextBufferView extends StatelessWidget {
 
     List<Text> lines = [];
 
-    for (int lineNo = 0; lineNo < 24; lineNo++) {
-      int address = 0xfc00 + lineNo * 32;
+    for (int lineNo = 0; lineNo < 32; lineNo++) {
+      int address = 0xfb00 + lineNo * 32;
       String line = "";
       for (int i = 0; i < 32; i++) {
         int memVal = memoryProvider.get(address + i);
@@ -47,7 +47,7 @@ class TextBufferView extends StatelessWidget {
       lines.add(Text(
           line,
           style: GoogleFonts.firaCode(
-              fontSize: 15,
+              fontSize: 11.5,
               color: ColorExtension.selectedGreen
           )
       ));
