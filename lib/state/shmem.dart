@@ -19,6 +19,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:msp430_dart/msp430_dart.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
 
 import '../ffi_bindings/shmem.dart';
@@ -109,7 +110,7 @@ class RegistersProvider extends ChangeNotifier {
   final List<int> _vals = List.filled(16, 0);
 
   RegistersProvider(this.shmem) {
-    Timer.periodic(const Duration(milliseconds: 250), _update);
+    Timer.periodic(const Duration(milliseconds: 64), _update);
   }
 
   void _update(Timer timer) async {
@@ -140,6 +141,10 @@ class RegistersProvider extends ChangeNotifier {
 class MemoryProvider extends ChangeNotifier {
   final Shmem shmem;
   final List<int> _data = List.filled(0x10000, 0);
+  Iterable<Pair<int, String>>? _disassembled;
+  int _disassemblyCount = -1;
+
+  Iterable<Pair<int, String>>? get disassembled => _disassembled;
 
   MemoryProvider(this.shmem) {
     Timer.periodic(const Duration(milliseconds: 64), _update);
@@ -151,6 +156,10 @@ class MemoryProvider extends ChangeNotifier {
       //if (i % 0xff == 0) {
       //  await Future.delayed(Duration.zero);
       //}
+    }
+    _disassemblyCount += 1;
+    if (_disassemblyCount % 78 == 0) { // once every ~5 seconds
+      _disassemble();
     }
     notifyListeners();
   }
@@ -165,5 +174,41 @@ class MemoryProvider extends ChangeNotifier {
     }
 
     return (_data[location] << 8) + _data[location+1];
+  }
+
+  void _disassemble() {
+    int start = getWord(0xfffe);
+    int current = start;
+    List<int> words = [];
+    int zeroCount = 0;
+
+    while (zeroCount < 10) {
+      words.add(getWord(current));
+      current += 2;
+      if (words.last == 0) {
+        zeroCount += 1;
+      } else {
+        zeroCount = 0;
+      }
+    }
+
+    while (words.isNotEmpty && words.last == 0) {
+      words.removeLast();
+    }
+
+    if (words.isNotEmpty) {
+      //print("disassembling, words: $words");
+      Disassembler dis = Disassembler(words + [0, 0], start, {});
+      _disassembled = dis.run();
+      //print(_disassembled!.join("\n"));
+    } else {
+      _disassembled = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    shmem.dispose();
   }
 }

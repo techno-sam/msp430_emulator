@@ -18,6 +18,7 @@
 
 // ignore_for_file: camel_case_types
 
+import 'dart:developer';
 import 'dart:ffi';
 import 'dart:io' show Platform;
 import 'package:ffi/ffi.dart';
@@ -93,6 +94,7 @@ class Shmem implements Finalizable {
   }
 
   Shmem._() {
+    log("Constructed shared memory");
     _initLib();
 
     final createPointer = _lib.lookup<NativeFunction<create_shared_memory_func>>('ffi_create');
@@ -141,10 +143,64 @@ class Shmem implements Finalizable {
   void destroy({bool reload = false}) {
     assert(!_destroyed, "Use-after-free, ya numbskull");
     _destroyed = true;
+
+    // set cached methods to null
+    _read = null;
+    _write = null;
+    _isReal = null;
+
     _lib.lookupFunction<cleanup_shared_memory_func, CleanupSharedMemory>
       ('ffi_cleanup', isLeaf: true)(_ptr);
     if (!reload) {
+      print("Freeing shmem ptr");
       calloc.free(_ptr);
+      _finalizer.detach(this);
     }
   }
+
+  void dispose() {
+    destroy();
+  }
+}
+
+class ShmemSham implements Shmem {
+  @override
+  bool _destroyed  = false;
+
+  @override
+  IsReal? _isReal;
+
+  @override
+  late shmem_ptr _ptr; // just never init
+
+  @override
+  ReadSharedMemory? _read;
+
+  @override
+  WriteSharedMemory? _write;
+
+  @override
+  void destroy({bool reload = false}) {}
+
+  @override
+  void dispose() {}
+
+  @override
+  bool isReal() {
+    return false;
+  }
+
+  @override
+  int read(int idx) {
+    return 0;
+  }
+
+  @override
+  void reload() {}
+
+  @override
+  void write(int idx, int value) {}
+
+  @override
+  void writeStr(int idx, String value) {}
 }

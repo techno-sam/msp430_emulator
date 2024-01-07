@@ -83,3 +83,23 @@ extension CharCounter on TextSpan {
     return count;
   }
 }
+
+class ClearableVoidCallback {
+  VoidCallback? _callback;
+
+  ClearableVoidCallback(this._callback);
+
+  void call() {
+    _callback?.call();
+  }
+
+  void clear() {
+    _callback = null;
+  }
+}
+
+extension Clearify on VoidCallback {
+  ClearableVoidCallback clearable() {
+    return ClearableVoidCallback(this);
+  }
+}

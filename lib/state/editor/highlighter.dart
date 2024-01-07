@@ -206,7 +206,7 @@ class CustomWidgetSpan extends WidgetSpan {
       : super(child: child);
 }
 
-List<LineDecoration> _decorate(String text, int line, Document document) {
+List<LineDecoration> _decorate(String text/*, int line, Document document*/) {
   String language = 'dart';
   language = 'msp430';
 
@@ -270,12 +270,14 @@ List<LineDecoration> _decorate(String text, int line, Document document) {
 }
 
 class Highlighter {
-  Pair<List<InlineSpan>, Color?> run(String text, int line, Document document) {
+  const Highlighter();
+
+  Pair<List<InlineSpan>, Color?> run(String text, int line, [Document? document]) {
     TextStyle defaultStyle = GoogleFonts.firaCode(
         fontSize: fontSize, color: editorTheme['root']?.color
     );
     List<InlineSpan> res = [];
-    List<LineDecoration> decors = _decorate(text, line, document);
+    List<LineDecoration> decors = _decorate(text/*, line, document*/);
 
     Color? cursorColor;
 
@@ -285,7 +287,7 @@ class Highlighter {
     for (int i = 0; i < text.length; i++) {
       String ch = text[i];
       TextStyle style = defaultStyle.copyWith();
-      Cursor cur = document.cursor.normalized();
+      Cursor? cur = document?.cursor.normalized();
 
       // decorate
       for (LineDecoration d in decors.reversed) {
@@ -295,7 +297,7 @@ class Highlighter {
       }
 
       // selection
-      if (cur.hasSelection()) {
+      if (cur != null && cur.hasSelection()) {
         if (line < cur.line ||
             (line == cur.line && i < cur.column) ||
             line > cur.anchorLine ||
@@ -306,7 +308,7 @@ class Highlighter {
       }
 
       // is within caret
-      if ((line == document.cursor.line && i == document.cursor.column))
+      if (document != null && (line == document.cursor.line && i == document.cursor.column))
       {
         cursorColor = style.color ?? Colors.yellow;
         /*res.add(WidgetSpan(

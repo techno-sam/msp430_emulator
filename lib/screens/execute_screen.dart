@@ -16,12 +16,15 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:msp430_emulator/widgets/disassembly_view.dart';
+import 'package:msp430_emulator/widgets/slide_divider.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
 import 'package:msp430_emulator/widgets/folding_container.dart';
 import 'package:msp430_emulator/widgets/memory_view.dart';
@@ -51,7 +54,14 @@ class ExecuteScreen extends StatelessWidget {
                 Expanded(
                   child: Column(
                     children: [
-                      MemoryView(scrollRequester: _scrollRequester),
+                      Expanded(
+                        child: HorizontalSplitView(
+                          key: const PageStorageKey<String>("memorySplitView"),
+                          upper: MemoryView(scrollRequester: _scrollRequester),
+                          lower: const DisassemblyView(),
+                          initialRatio: 0.8,
+                        ),
+                      ),
                       const Divider(color: ColorExtension.unselectedGreen, height: 6,),
                       FoldingContainer(
                         expandedTitle: Text(
@@ -90,9 +100,9 @@ class ExecuteToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int endFlex = 50;
-    int intraGroupFlex = 5;
-    int interGroupFlex = 40;
+    const int endFlex = 50;
+    const int intraGroupFlex = 5;
+    const int interGroupFlex = 40;
     const buttonColor = Color(0xff69103a);
     return Container(
       //color: ColorExtension.deepSlateBlue.withBrightness(0.5),
@@ -104,9 +114,14 @@ class ExecuteToolbar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Spacer(flex: endFlex),
+          const Spacer(flex: endFlex),
           const ReloadButton(),
-          Spacer(flex: interGroupFlex),
+          if (kDebugMode)
+            ...[
+              const Spacer(flex: intraGroupFlex),
+              const MemLeakButton(),
+            ],
+          const Spacer(flex: interGroupFlex),
           IconButton(
             onPressed: () async {
               Directory initialDirectory = Directory.fromUri(
@@ -139,7 +154,7 @@ class ExecuteToolbar extends StatelessWidget {
               backgroundColor: buttonColor
             ),
           ),
-          Spacer(flex: interGroupFlex),
+          const Spacer(flex: interGroupFlex),
           IconButton(
             onPressed: shmem.runProgram,
             tooltip: "Run",
@@ -149,7 +164,7 @@ class ExecuteToolbar extends StatelessWidget {
                 backgroundColor: buttonColor
             ),
           ),
-          Spacer(flex: intraGroupFlex),
+          const Spacer(flex: intraGroupFlex),
           IconButton(
             onPressed: shmem.stopProgram,
             tooltip: "Stop",
@@ -159,7 +174,7 @@ class ExecuteToolbar extends StatelessWidget {
                 backgroundColor: buttonColor
             ),
           ),
-          Spacer(flex: interGroupFlex),
+          const Spacer(flex: interGroupFlex),
           for (int i in [1, 5, 10, 20, 100, 200])
             ...[
               Tooltip(
@@ -177,9 +192,9 @@ class ExecuteToolbar extends StatelessWidget {
                 ),
               ),
               if(i != 200)
-                Spacer(flex: intraGroupFlex),
+                const Spacer(flex: intraGroupFlex),
           ],
-          Spacer(flex: endFlex),
+          const Spacer(flex: endFlex),
         ],
       ),
     );
@@ -206,6 +221,36 @@ class ReloadButton extends StatelessWidget {
           backgroundColor: isReal
               ? const Color(0xff69103a)
               : ColorExtension.selectedGreen.invert.withBrightness(0.2)
+      ),
+    );
+  }
+}
+
+class MemLeakButton extends StatelessWidget {
+  const MemLeakButton({super.key});
+
+  @override
+  Widget build(BuildContext context) { // 500000000
+    final ShmemProvider shmem = Provider.of<ShmemProvider>(context, listen: false);
+    return IconButton(
+      onPressed: () async {
+        log("Starting leak");
+        const int count = 500000000;
+        final int updateInterval = (count / 1000).round();
+        for (int i = 0; i < count; i++) {
+          shmem.shmem.read(0);
+          if (i % updateInterval == 0) {
+            log("Leak progress: ${i / count * 100}");
+            await Future.delayed(const Duration());
+          }
+        }
+        log("Done leaking");
+      },
+      tooltip: "Try to leak rust ffi (native) memory",
+      icon: const Icon(Icons.water_drop_outlined),
+      color: ColorExtension.selectedGreen,
+      style: IconButton.styleFrom(
+          backgroundColor: const Color(0xff69103a)
       ),
     );
   }

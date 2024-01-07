@@ -19,6 +19,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:msp430_dart/msp430_dart.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
 import 'package:provider/provider.dart';
 
@@ -151,10 +152,10 @@ class _KeypadState extends State<Keypad> {
 }
 
 class KeypadButton extends StatefulWidget {
-  const KeypadButton({super.key, required this.text, required this.onPressed});
+  KeypadButton({super.key, required this.text, required VoidCallback onPressed}): _onPressed = onPressed.clearable();
 
   final String text;
-  final VoidCallback onPressed;
+  final ClearableVoidCallback _onPressed;
 
   @override
   State<KeypadButton> createState() => _KeypadButtonState();
@@ -174,6 +175,12 @@ class _KeypadButtonState extends State<KeypadButton> {
   }
 
   @override
+  void dispose() {
+    widget._onPressed.clear();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     const buttonColor = Color(0xff165b88);
     return SizedBox(
@@ -184,7 +191,7 @@ class _KeypadButtonState extends State<KeypadButton> {
           color: buttonColor,
           padding: const EdgeInsets.all(2),
           child: TextButton(
-            onPressed: widget.onPressed,
+            onPressed: widget._onPressed,
             statesController: MaterialStatesController({
               MaterialState.pressed
             }),

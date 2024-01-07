@@ -143,29 +143,27 @@ class _MemoryViewState extends State<MemoryView> {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        color: ColorExtension.deepSlateBlue.withBrightness(0.5),
-        child: ListView.builder(
-          key: const PageStorageKey<String>("scroller_for_mem_view"),//_listKey,
-          padding: const EdgeInsets.all(8),
-          controller: scroller,
-          itemCount: (0x10000 / bytesPerLine).round(), // 16 bytes per line
-          itemBuilder: (BuildContext context, int idx) {
-            return _MemoryViewLine(
-              key: _MemoryLineKey(idx),
-              index: idx,
-            );
-          },
-          findChildIndexCallback: (key) {
-            if (key is _MemoryLineKey) {
-              return key.value;
-            } else {
-              return null;
-            }
-          },
-          prototypeItem: const _MemoryViewLine(index: 0, key: _MemoryLineKey(0)),
-        ),
+    return Container(
+      color: ColorExtension.deepSlateBlue.withBrightness(0.5),
+      child: ListView.builder(
+        key: const PageStorageKey<String>("scroller_for_mem_view"),//_listKey,
+        padding: const EdgeInsets.all(8),
+        controller: scroller,
+        itemCount: (0x10000 / bytesPerLine).round(), // 16 bytes per line
+        itemBuilder: (BuildContext context, int idx) {
+          return _MemoryViewLine(
+            key: _MemoryLineKey(idx),
+            index: idx,
+          );
+        },
+        findChildIndexCallback: (key) {
+          if (key is _MemoryLineKey) {
+            return key.value;
+          } else {
+            return null;
+          }
+        },
+        prototypeItem: const _MemoryViewLine(index: 0, key: _MemoryLineKey(0)),
       ),
     );
   }
