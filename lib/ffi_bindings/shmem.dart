@@ -152,7 +152,7 @@ class Shmem implements Finalizable {
     _lib.lookupFunction<cleanup_shared_memory_func, CleanupSharedMemory>
       ('ffi_cleanup', isLeaf: true)(_ptr);
     if (!reload) {
-      print("Freeing shmem ptr");
+      log("Freeing shmem ptr");
       calloc.free(_ptr);
       _finalizer.detach(this);
     }

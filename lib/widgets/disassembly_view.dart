@@ -18,7 +18,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:msp430_dart/src/basic_datatypes.dart';
+import 'package:msp430_dart/msp430_dart.dart' show Pair;
 import 'package:msp430_emulator/state/editor/highlighter.dart' as hl;
 import 'package:msp430_emulator/state/shmem.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
@@ -77,7 +77,7 @@ class _DisassemblyLine extends StatelessWidget {
   final int address;
   final String text;
 
-  const _DisassemblyLine({super.key, required this.address, required this.text});
+  const _DisassemblyLine({required this.address, required this.text});
 
   @override
   Widget build(BuildContext context) {

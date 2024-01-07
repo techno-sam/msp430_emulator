@@ -104,6 +104,9 @@ class ExecuteToolbar extends StatelessWidget {
     const int intraGroupFlex = 5;
     const int interGroupFlex = 40;
     const buttonColor = Color(0xff69103a);
+
+    final MemoryProvider mem = Provider.of<MemoryProvider>(context, listen: false);
+
     return Container(
       //color: ColorExtension.deepSlateBlue.withBrightness(0.5),
       margin: const EdgeInsets.all(4.0),
@@ -142,6 +145,7 @@ class ExecuteToolbar extends StatelessWidget {
                   print("loading program");
                 }
                 shmem.loadProgram(result.files.single.path!);
+                mem.setListingFile(File("${result.files.single.path!.trimSuffix(".bin")}.lst"));
                 if (kDebugMode) {
                   print("Done (on main) loading program");
                 }

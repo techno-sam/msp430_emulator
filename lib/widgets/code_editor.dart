@@ -87,7 +87,7 @@ class _Editor extends State<Editor> {
         return doc;
       }),
       ChangeNotifierProvider(create: (context) => pulse),
-      Provider(create: (context) => Highlighter()),
+      Provider(create: (context) => const Highlighter()),
     ], child: Stack(
       children: [
         const InputListener(child: ev.View(key: PageStorageKey("view"))),

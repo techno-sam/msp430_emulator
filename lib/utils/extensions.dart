@@ -103,3 +103,13 @@ extension Clearify on VoidCallback {
     return ClearableVoidCallback(this);
   }
 }
+
+extension PrefixSuffixTrim on String {
+  String trimPrefix(String prefix) {
+    return startsWith(prefix) ? substring(prefix.length) : this;
+  }
+
+  String trimSuffix(String suffix) {
+    return endsWith(suffix) ? substring(0, length - suffix.length) : this;
+  }
+}

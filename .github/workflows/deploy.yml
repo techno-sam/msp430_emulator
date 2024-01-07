@@ -28,10 +28,11 @@ jobs:
             flutter-target: linux
             do_cross: false
 
-          #- build: macos
-          #  os: macos-latest
-          #  target: x86_64-apple-darwin
-          #  do_cross: false
+          - build: macos
+            os: macos-latest
+            target: x86_64-apple-darwin
+            flutter-target: macos
+            do_cross: false
 
           - build: windows-gnu
             os: windows-latest
@@ -95,6 +96,11 @@ jobs:
             cd buildscripts && dart download_rust_emu.dart && cd ..
           elif [ "${{ matrix.os }}" = "macos-latest" ]; then
             cp "target/${{ matrix.target }}/release/libshmem_ffi.dylib" "target/release/"
+            cp "target/${{ matrix.target }}/release/libshmem_ffi.dylib" "macos/Runner/Frameworks/"
+            echo "Getting flutter dependencies"
+            flutter pub get
+            echo "Fetching and setting up rust emulator binary"
+            cd buildscripts && dart download_rust_emu.dart && cd ..
           fi
           # echo "directory: target/release (after copy)"
           # ls target/release
@@ -136,6 +142,8 @@ jobs:
             echo "ls build/windows/x64/runner"
             ls "build/windows/x64/runner"
             mv "build/${{ matrix.flutter-target }}/x64/runner/Release" "$dirname"
+          elif [ "${{ matrix.os }}" = "macos-latest"]; then
+            mv "build/${{ matrix.flutter-target }}/x64/Release" "$dirname"
           else
             echo "OS not recognized..."
           fi

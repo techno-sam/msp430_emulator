@@ -17,6 +17,7 @@
  */
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:msp430_dart/msp430_dart.dart';
@@ -141,6 +142,7 @@ class RegistersProvider extends ChangeNotifier {
 class MemoryProvider extends ChangeNotifier {
   final Shmem shmem;
   final List<int> _data = List.filled(0x10000, 0);
+  Map<int, String>? _labels;
   Iterable<Pair<int, String>>? _disassembled;
   int _disassemblyCount = -1;
 
@@ -148,6 +150,20 @@ class MemoryProvider extends ChangeNotifier {
 
   MemoryProvider(this.shmem) {
     Timer.periodic(const Duration(milliseconds: 64), _update);
+  }
+
+  Future<void> setListingFile(File listingFile) async {
+    //print("Setting listing file to $listingFile");
+    _labels = {};
+    if (await listingFile.exists()) {
+      String contents = await listingFile.readAsString();
+      Iterable<String> labels = contents.split("\n\n-------------|Code|-------------")[0].split("\n").skip(1);
+      for (String label in labels) {
+        //print("Parsing label: '$label'");
+        var split = label.split("\t");
+        _labels?[int.parse(split[1].trimPrefix("0x"), radix: 16)] = split[0].trim();
+      }
+    }
   }
 
   void _update(Timer timer) async {
@@ -198,7 +214,7 @@ class MemoryProvider extends ChangeNotifier {
 
     if (words.isNotEmpty) {
       //print("disassembling, words: $words");
-      Disassembler dis = Disassembler(words + [0, 0], start, {});
+      Disassembler dis = Disassembler(words + [0, 0], start, _labels ?? {});
       _disassembled = dis.run();
       //print(_disassembled!.join("\n"));
     } else {

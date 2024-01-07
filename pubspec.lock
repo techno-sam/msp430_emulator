@@ -213,10 +213,10 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: bafa659cd33f60fb30e780073a0800d393c63906
+      resolved-ref: dd8620ffe3b43c7287992433052a0f38007487dc
       url: "https://github.com/techno-sam/msp430_dart.git"
     source: git
-    version: "0.3.4"
+    version: "0.3.6"
   nested:
     dependency: transitive
     description:
