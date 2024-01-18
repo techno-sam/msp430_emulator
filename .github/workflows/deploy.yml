@@ -28,11 +28,11 @@ jobs:
             flutter-target: linux
             do_cross: false
 
-          - build: macos
-            os: macos-latest
-            target: x86_64-apple-darwin
-            flutter-target: macos
-            do_cross: false
+          #- build: macos
+          #  os: macos-latest
+          #  target: x86_64-apple-darwin
+          #  flutter-target: macos
+          #  do_cross: false
 
           - build: windows-gnu
             os: windows-latest
