@@ -19,6 +19,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:msp430_dart/msp430_dart.dart';
 export 'package:msp430_dart/msp430_dart.dart' show IntRepresentations;
 
 extension ColorExtension on Color {
@@ -36,31 +37,12 @@ extension ColorExtension on Color {
   }
 }
 
-/*extension IntRepresentations on int {
-  String get hexString4 {
+extension on int {
+  String get hexString6 {
     String str = toRadixString(16);
-    return "0" * (4 - str.length) + str;
+    return "0" * (6 - str.length) + str;
   }
-
-  String get hexString2 {
-    String str = toRadixString(16);
-    return "0" * (2 - str.length) + str;
-  }
-
-  String get hexString1 {
-    String str = toRadixString(16);
-    return "0" * (1 - str.length) + str;
-  }
-
-  String get commaSeparatedString {
-    String str = toString();
-    String out = "";
-    for (int i = 0; i < str.length; i++) {
-      out = (i % 3 == 2 && i < str.length-1 ? ',' : '') + str[str.length - i - 1] + out;
-    }
-    return out;
-  }
-}*/
+}
 
 T applyConditional<T>(T value, bool apply, T Function(T v) modifier) {
   return apply ? modifier(value) : value;
@@ -111,5 +93,44 @@ extension PrefixSuffixTrim on String {
 
   String trimSuffix(String suffix) {
     return endsWith(suffix) ? substring(0, length - suffix.length) : this;
+  }
+}
+
+extension CSSColor on Color {
+  String get cssValue => "#${(value & 0xffffff).hexString6}${alpha.hexString2}";
+}
+
+extension HTMLableSpan on TextSpan {
+  String toHtml([Color? defaultBackgroundColor]) {
+    if (children?.isNotEmpty == true) {
+      return "<h1>children not supported</h1>";
+    }
+    String text = this.text!.replaceAll(" ", "&nbsp;");
+    final Map<String, dynamic> styles = {};
+    // actual stuff
+    styles["color"] = (style?.color ?? Colors.greenAccent).cssValue;
+    styles["background-color"] = (style?.backgroundColor ?? defaultBackgroundColor)?.cssValue;
+    styles["font-size"] = "${style?.fontSize ?? 18.0}pt";
+    if (style?.decoration == TextDecoration.underline) {
+      styles["text-decoration"] = "underline";
+    }
+    if (style?.decorationColor != null) {
+      //print("deco color: ${style?.decorationColor}");
+      styles["text-decoration-color"] = style?.decorationColor!.cssValue;
+    }
+    if (style?.fontWeight != null) {
+      styles["font-weight"] = style?.fontWeight!.value;
+    }
+    if (style?.fontStyle != null) {
+      styles["font-style"] = style?.fontStyle!.name;
+    }
+    styles["font-family"] = "'Fira Code',monospace";
+
+    String styleStr = "";
+    for (var entry in styles.entries) {
+      if (entry.value == null) continue;
+      styleStr += "${entry.key}: ${entry.value}; ";
+    }
+    return '<span style="$styleStr">$text</span>';
   }
 }

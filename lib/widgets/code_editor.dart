@@ -16,6 +16,8 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'dart:io' as io;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
@@ -82,12 +84,13 @@ class _Editor extends State<Editor> {
         _loadFile(restoreInPlace: true);
       }
     }
+    const Highlighter hl = Highlighter();
     return MultiProvider(providers: [
       ChangeNotifierProvider(create: (context) {
         return doc;
       }),
       ChangeNotifierProvider(create: (context) => pulse),
-      Provider(create: (context) => const Highlighter()),
+      Provider(create: (context) => hl),
     ], child: Stack(
       children: [
         const InputListener(child: ev.View(key: PageStorageKey("view"))),
@@ -99,12 +102,63 @@ class _Editor extends State<Editor> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
+                  onPressed: () async {
+                    final Color bgColor = editorTheme['root']?.backgroundColor ?? Colors.black;
+                    String finalHtml = """<html lang="en"><head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Noto+Color+Emoji&display=swap" rel="stylesheet">
+  <title>${doc.doc.docPath}</title>
+  <style>
+  span {
+    white-space: pre;
+  }
+  </style>
+</head>
+
+<body style="font-family: 'Fira Code',monospace; background-color: ${bgColor.cssValue};">""";
+                    for (int i = 0; i < doc.doc.lines.length; i++) {
+                      //print("\n\n\n");
+                      String text = doc.doc.lines[i];
+                      Pair<List<InlineSpan>, Color?> spansAndColor = hl.run(text, i, doc.doc);
+                      List<TextSpan> spans = spansAndColor.first.whereType<TextSpan>().toList();
+                      if (spans.last.text == " " && spans.length > 2) {
+                        spans.removeLast();
+                      }
+                      for (TextSpan span in spans) {
+                        var html = span.toHtml(bgColor);
+                        //print("$span -> $html");
+                        finalHtml += html;
+                      }
+                      finalHtml += "<br/>";
+                    }
+                    finalHtml += "\n</body></html>";
+                    //print("exporting html");
+                    //print("\n\n$finalHtml");
+
+                    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+                    await io.File("${doc.doc.docPath.replaceAll(".asm", "")}.html")
+                        .writeAsString(finalHtml, flush: true);
+
+                    scaffoldMessenger.showSnackBar(const SnackBar(
+                        content: Text("Exported HTML file"),
+                        backgroundColor: ColorExtension.deepSlateBlue
+                    ));
+                  },
+                  icon: const Icon(Icons.code, color: ColorExtension.selectedGreen),
+                  style: IconButton.styleFrom(
+                      backgroundColor: ColorExtension.deepSlateBlue,
+                      highlightColor: ColorExtension.blackGreen.withOpacity(0.5)
+                  ),
+                  tooltip: "Export HTML",
+                ),
+                const SizedBox(width: 16.0),
+                IconButton(
                   onPressed: () {
                     doc.toggleTutor();
                   },
-                  icon: const TutorStatusIcon(
-                    icon: CupertinoIcons.hammer,
-                  ),
+                  icon: const TutorStatusIcon(),
                   style: IconButton.styleFrom(
                       backgroundColor: ColorExtension.deepSlateBlue,
                       highlightColor: ColorExtension.blackGreen.withOpacity(0.5)
@@ -153,12 +207,7 @@ class CompileStatusIcon extends StatelessWidget {
 }
 
 class TutorStatusIcon extends StatelessWidget {
-  const TutorStatusIcon({
-    super.key,
-    required this.icon,
-  });
-
-  final IconData icon;
+  const TutorStatusIcon({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -54,7 +54,23 @@ Mode msp430Lang() {
           Mode(begin: "r1[0-5](?![0-9])"),
           Mode(begin: "r[0-9](?![0-9])"),
         ]
-      )
+      ),
+      "~macro_sub": Mode(
+        className: "meta",
+        begin: r"{",
+        //end: r"}",
+        contains: [
+          Mode(
+            className: "subst",
+            begin: r"[A-z$_][A-z0-9$_]*",
+          ),
+          Mode(
+            className: "meta",
+            endsParent: true,
+            end: r"}"
+          )
+        ]
+      ),
     },
     case_insensitive: true,
     keywords: {
@@ -126,6 +142,32 @@ Mode msp430Lang() {
         className: "function",
         begin: "^([A-z\$_][A-z0-9\$_]*):"
       ),
+      Mode(
+          className: "macro",
+          variants: [
+            Mode(begin: r"^\s*[A-z$_][A-z0-9$_]*\(")
+          ],
+          //endsWithParent: true,
+          //begin: r"[A-z$_][A-z0-9$_]*\(",
+          //end: r"\)",
+          contains: [
+            Mode(
+                className: "variable",
+                begin: r"[^,)]+",
+                subLanguage: ["msp430"]
+            ),
+            Mode(
+                className: "root_fg",
+                begin: r",\s*"
+            ),
+            Mode(
+                className: "macro",
+                begin: r"\)",
+                endsParent: true
+            ),
+          ]
+      ),
+      Mode(ref: "~macro_sub"),
       Mode(ref: "~symbol"),
       Mode(
         className: "meta",
@@ -133,7 +175,7 @@ Mode msp430Lang() {
       ),
       Mode(
         className: "meta",
-        begin: r"\.(data|text|locblk|dbgbrk)"
+        begin: r"\.(data|text|locblk|dbgbrk|push_locblk|pop_locblk|endmacro)"
       ),
       Mode(
         className: "meta",
@@ -186,6 +228,24 @@ Mode msp430Lang() {
           ]
       ),
       Mode(
+        className: "meta",
+        begin: r"\.macro ",
+        contains: [
+          Mode(
+            className: "macro",
+            variants: [
+              Mode(begin: r"[A-z$_][A-z0-9$_]*\(")
+            ],
+            endsWithParent: true,
+            contains: [
+              Mode(begin: r"[A-z$_][A-z0-9$_]*", className: "variable"),
+              Mode(begin: r",\s*", className: "root_fg"),
+              Mode(begin: r"\)", endsParent: true)
+            ]
+          )
+        ]
+      ),
+      Mode(
         className: "operator",
         begin: "@",
         contains: [
@@ -194,17 +254,15 @@ Mode msp430Lang() {
             variants: [
               Mode(begin: "r1[0-5](?![0-9])"),
               Mode(begin: "r[0-9](?![0-9])"),
-              Mode(begin: "pc|sp|sr|cg")
+              Mode(begin: "pc|sp|sr|cg"),
+              Mode(ref: "~macro_sub")
             ],
-            endsWithParent: true,
-            contains: [
-              Mode(
-                className: "operator",
-                begin: r"\+",
-                endsParent: true
-              )
-            ]
           ),
+          Mode(
+              className: "operator",
+              begin: r"\+",
+              endsParent: true
+          )
         ]
       ),
       Mode(
@@ -219,17 +277,15 @@ Mode msp430Lang() {
                 variants: [
                   Mode(begin: "r1[0-5](?![0-9])"),
                   Mode(begin: "r[0-9](?![0-9])"),
-                  Mode(begin: "pc|sp|sr|cg")
+                  Mode(begin: "pc|sp|sr|cg"),
+                  Mode(ref: "~macro_sub")
                 ],
-                endsWithParent: true,
-                contains: [
-                  Mode(
-                      className: "operator",
-                      begin: r"\)",
-                      endsParent: true
-                  )
-                ]
             ),
+            Mode(
+                className: "operator",
+                begin: r"\)",
+                endsParent: true
+            )
           ]
       ),
       Mode(
@@ -237,7 +293,8 @@ Mode msp430Lang() {
         begin: "#|&",
         contains: [
           Mode(ref: "~number"),
-          Mode(ref: "~symbol")
+          Mode(ref: "~symbol"),
+          Mode(ref: "~macro_sub")
         ]
       ),
       Mode(ref: "~number")

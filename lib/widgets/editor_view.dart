@@ -37,7 +37,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:msp430_dart/msp430_dart.dart' show LineId;
@@ -154,6 +154,7 @@ class DocumentProvider extends ChangeNotifier {
     } catch (ignored) {
       assembled = null;
       listing.clear();
+      if (kDebugMode) rethrow;
     }
 
     _assemblyStatus = AssemblyStatus.fromSuccess(assembled != null);

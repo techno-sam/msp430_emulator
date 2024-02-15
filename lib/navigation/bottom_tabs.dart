@@ -80,10 +80,11 @@ class _BottomTabsState extends State<BottomTabs> with SingleTickerProviderStateM
   final PageStorageBucket _bucket = PageStorageBucket();
 
   final GlobalKey<State<TabbedEditorScreen>> _editKey = GlobalKey<State<TabbedEditorScreen>>();
+  final GlobalKey _homeKey = GlobalKey();
 
   late final List<Widget> _widgetOptions = <Widget>[
     TabbedEditorScreen(key: _editKey),//CodeEditScreen(key: _editKey, path: "/home/sam/AppDev/msp430_emulator/test/widget_test.dart"),//TabbedEditorScreen(key: PageStorageKey("tabbedEditor")),//key: _screenKey1, path: '/home/sam/AppDev/msp430_emulator/test/widget_test.dart'),
-    const HomeScreen(),
+    HomeScreen(key: _homeKey),
     ExecuteScreen(),
   ];
 

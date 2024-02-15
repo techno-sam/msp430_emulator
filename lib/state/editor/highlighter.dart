@@ -54,6 +54,8 @@ Map<String, TextStyle> get editorTheme {
   newTheme['attribute'] = newTheme['attribute']!.copyWith(decoration: TextDecoration.underline);
   newTheme['operator'] = newTheme['operator']!.copyWith(decoration: TextDecoration.underline);
   newTheme['meta'] = const TextStyle(color: Color(0xff17e1c9));
+  newTheme['macro'] = const TextStyle(color: Color(0xffe06c75), fontWeight: FontWeight.bold);
+  newTheme['root_fg'] = TextStyle(color: newTheme['root']!.color);
   return newTheme;//gradientDarkTheme;
 }
 //var editorTheme = atelierHeathDarkTheme;
@@ -86,7 +88,7 @@ class LineDecoration {
     }
 
     if (underline == true) {
-      style = style.copyWith(decoration: TextDecoration.underline, decorationThickness: 4.0);
+      style = style.copyWith(decoration: TextDecoration.underline, decorationThickness: 4.0, decorationColor: color ?? style.color ?? style.decorationColor);
     } else if (underline == false) {
       style = style.copyWith(decoration: TextDecoration.none);
     }
@@ -206,11 +208,8 @@ class CustomWidgetSpan extends WidgetSpan {
       : super(child: child);
 }
 
-List<LineDecoration> _decorate(String text/*, int line, Document document*/) {
-  String language = 'dart';
-  language = 'msp430';
-
-  List<Node> nodes = highlight.parse(text, language: language).nodes!;
+List<LineDecoration> _decorate(String text, [String? language = 'msp430']) {
+  List<Node> nodes = highlight.parse(text, language: language, autoDetection: language==null).nodes!;
 
   _TokenList tokens = _TokenList();
 
@@ -272,12 +271,12 @@ List<LineDecoration> _decorate(String text/*, int line, Document document*/) {
 class Highlighter {
   const Highlighter();
 
-  Pair<List<InlineSpan>, Color?> run(String text, int line, [Document? document]) {
+  Pair<List<InlineSpan>, Color?> run(String text, int line, [Document? document, String? language = 'msp430']) {
     TextStyle defaultStyle = GoogleFonts.firaCode(
         fontSize: fontSize, color: editorTheme['root']?.color
     );
     List<InlineSpan> res = [];
-    List<LineDecoration> decors = _decorate(text/*, line, document*/);
+    List<LineDecoration> decors = _decorate(text, language);
 
     Color? cursorColor;
 

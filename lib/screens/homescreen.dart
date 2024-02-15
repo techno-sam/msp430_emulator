@@ -17,8 +17,12 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:markdown/markdown.dart' as md;
 import 'package:google_fonts/google_fonts.dart';
+import 'package:msp430_emulator/language_def/md_syntax_highlighter.dart';
 import 'package:msp430_emulator/utils/extensions.dart';
+import 'package:msp430_emulator/widgets/md_documentation_card.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -62,6 +66,14 @@ class HomeScreen extends StatelessWidget {
             child: const Text("View license information"),
           ),
         ),
+        /*Expanded(
+          child: Center(
+            child: MarkdownDocumentationCard(
+              key: const PageStorageKey("md_docs"),
+              theme: theme
+            ),
+          ),
+        )*/
       ],
     );
   }
