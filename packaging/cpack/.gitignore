@@ -4,3 +4,12 @@ cmake_install.cmake
 CPackConfig.cmake
 CPackSourceConfig.cmake
 CMakeFiles/
+
+*.vcxproj
+*.vcxproj.filters
+_CPack_Packages/
+install_manifest.txt
+x64/
+msp430_emulator.sln
+msp430_emulator-*-win64.exe
+build/
