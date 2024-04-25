@@ -143,6 +143,13 @@ jobs:
             echo "ls build/windows/x64/runner"
             ls "build/windows/x64/runner"
             mv "build/${{ matrix.flutter-target }}/x64/runner/Release" "$dirname"
+
+            echo "Packaging"
+            cd "packaging/cpack"
+            bash ./package.sh
+            echo "Storing extra asset"
+            cd ../..
+            echo "ADDITIONAL_ASSET=packaging/cpack/build/_CPack_Packages/win64/NSIS64/msp430_emulator-${{ env.VERSION }}-win64.exe"
           elif [ "${{ matrix.os }}" = "macos-latest"]; then
             mv "build/${{ matrix.flutter-target }}/x64/Release" "$dirname"
           else

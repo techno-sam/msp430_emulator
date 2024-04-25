@@ -5,8 +5,8 @@ project(msp430_emulator)
 set(CPACK_PACKAGE_NAME "msp430_emulator")
 set(CPACK_PACKAGE_VENDOR "techno-sam")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "techno-sam")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Your application description")
-set(CPACK_PACKAGE_VERSION "1.4.3") # TODO: command line config?
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "An emulator and assembler for the MSP430 chip")
+set(CPACK_PACKAGE_VERSION "1.4.0") # TODO: command line config?
 set(CPACK_GENERATOR "NSIS64")  # You can specify the desired generator (e.g., NSIS, WIX, ZIP, etc.)
 set(CMAKE_GENERATOR_PLATFORM 64)
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../../LICENSE")
