@@ -9,17 +9,17 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "An emulator and assembler for the MSP430 
 set(CPACK_PACKAGE_VERSION "1.4.0") # TODO: command line config?
 set(CPACK_GENERATOR "NSIS64")  # You can specify the desired generator (e.g., NSIS, WIX, ZIP, etc.)
 set(CMAKE_GENERATOR_PLATFORM 64)
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../../LICENSE")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}\\\\..\\\\..\\\\LICENSE")
 set(CPACK_INSTALL_PREFIX "./")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "msp430_emulator")
 
 # Ensure consistent install directory
 set(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES64")
 
-get_filename_component(COMMON_PREFIX ../../build/windows/x64/runner/Release REALPATH)
+get_filename_component(COMMON_PREFIX ..\\..\\build\\windows\\x64\\runner\\Release REALPATH)
 
 # read install manifest
-file(STRINGS ../../build/windows/x64/install_manifest.txt CPACK_FILES)
+file(STRINGS ..\\..\\build\\windows\\x64\\install_manifest.txt CPACK_FILES)
 
 # Add files specified by manifest to CPack
 foreach(file ${CPACK_FILES})
@@ -34,7 +34,7 @@ foreach(file ${CPACK_FILES})
     install(FILES "${file}" DESTINATION "${CPACK_INSTALL_PREFIX}/${dest_dir}")
 endforeach()
 # Add the 'root' executable
-install(FILES "../../build/windows/x64/runner/Release/msp430_emulator.exe" DESTINATION "${CPACK_INSTALL_PREFIX}/")
+install(FILES "..\\\\..\\\\build\\\\windows\\\\x64\\\\runner\\\\Release\\\\msp430_emulator.exe" DESTINATION "${CPACK_INSTALL_PREFIX}/")
 
 # Create Start Menu shortcut
 set(CPACK_NSIS_CREATE_ICONS_EXTRA "
