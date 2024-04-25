@@ -146,7 +146,15 @@ jobs:
 
             echo "Packaging"
             cd "packaging/cpack"
-            bash ./package.sh
+
+            mdkir build
+            cd build
+            echo "cmake .."
+            cmake -DCMAKE_BUILD_TYPE=Release ..
+            echo "cpack"
+            cpack
+            cd ..
+
             echo "Storing extra asset"
             cd ../..
             echo "ADDITIONAL_ASSET=packaging/cpack/build/_CPack_Packages/win64/NSIS64/msp430_emulator-${{ env.VERSION }}-win64.exe"
