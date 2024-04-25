@@ -147,7 +147,7 @@ jobs:
             echo "Packaging"
             cd "packaging/cpack"
 
-            mdkir build
+            mkdir build
             cd build
             echo "cmake .."
             cmake -DCMAKE_BUILD_TYPE=Release ..
